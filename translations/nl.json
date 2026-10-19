@@ -9,8 +9,12 @@
  },
  "app": {
   "name": "JC8012-camera",
-  "summary": "De OV02C10-camera van de JC8012P4A1 v3 in Home Assistant, met een camera in de bovenbalk zolang er iemand kijkt.",
+  "summary": "De ingebouwde camera van de JC8012P4A1 v3 in Home Assistant, met een camera in de bovenbalk zolang er iemand kijkt.",
   "bar_watching": "Camera in gebruik",
-  "bar_example": "Live"
+  "bar_example": "Live",
+  "setting_mirror": "Beeld spiegelen",
+  "setting_mirror_hint": "Wisselt links en rechts, voor een beeld als in een spiegel of juist andersom.",
+  "setting_flip": "Beeld ondersteboven draaien",
+  "setting_flip_hint": "Voor een beeld dat ondersteboven binnenkomt."
  }
 }

@@ -1,26 +1,74 @@
 # JC8012 camera
 
-Local Tessera plugin for the built-in OV02C10 camera on the Guition
-JC8012P4A1 v3 (`jc8012p4a1v3`). It exposes a native ESPHome camera to Home
-Assistant and supplies a top-bar activity indicator.
+See the built-in camera of the Guition JC8012P4A1 v3 (the 10.1-inch screen) in Home Assistant. The screen becomes a
+camera of its device there: a picture on a dashboard, a stream when you open it, and anything Home Assistant does with a
+camera (a snapshot in an automation, a recording).
+
+The picture is made on the screen in hardware, only while Home Assistant asks for one. While it does, a camera shows in
+the screen's top bar, so whoever stands in front of it knows.
+
+> **Beta.** This plugin builds, but it has not yet been tried on a real JC8012P4A1 v3. If you try it, please
+> [open an issue](https://github.com/Heronimonimo/tessera-jc8012-camera/issues) with what you see (see "Trying it" below).
+
+## What you need
+
+- A Guition JC8012P4A1 **v3** running Tessera (board `jc8012p4a1v3`). The first JC8012P4A1 and the V2 are not
+  supported yet.
+- Nothing else in Home Assistant: the camera comes with the screen's device in the ESPHome integration.
 
 ## Set up
 
-Install the complete folder as `/config/tessera-plugins/jc8012_camera/`, then
-select **JC8012 camera** in Tessera's Plugins page. Tessera manages the generated
-`woonkamer.plugins.yaml` file.
+1. In Tessera, open **Plugins**, choose **Add with a link** and paste
+   `https://github.com/Heronimonimo/tessera-jc8012-camera`.
+2. Choose **JC8012 camera** and tick your JC8012P4A1 v3 screen. The screen builds once with it, which takes a while.
+3. In Home Assistant, open the screen's device (Settings, Devices): its camera is there as **Camera**. Put it on a
+   dashboard with a Picture entity or a Picture glance card.
+4. If the picture is mirrored or upside down, switch **Mirror the picture** or **Turn the picture upside down** in the
+   plugin's settings on the screen's Plugins tab in Tessera (or the **Camera mirror** and **Camera flip** switches on the
+   device in Home Assistant). The next picture comes out turned.
+5. Optional: add **Camera in use** to a page's top bar (Top bar, Add, From plugins). It shows while pictures leave the
+   screen: "Live" for a stream, "Camera" for a picture now and then.
 
-After the build, open the screen device in Home Assistant. Add its
-**JC8012 camera** entity to a Picture entity or Picture glance card. The
-optional **Camera in use** bar item shows when pictures leave the screen.
+## Privacy
 
-## Hardware
+Nothing leaves the screen until Home Assistant asks for a picture, and every picture goes only to your Home Assistant.
+Everyone who can open the screen's device or a dashboard with its camera can see through it. To stop that for a while,
+disable the camera entity in Home Assistant; to stop it for good, remove the plugin from the screen.
 
-Hardware mapping: the board routes two MIPI-CSI lanes, while the proven
-`1288x728` sensor profile uses lane 0. The OV02C10 is at SCCB address `0x36` on
-the existing `touch_bus` (GPIO7 SDA, GPIO8 SCL), with no external XCLK/reset/
-power-down GPIO. The plugin requests at most 2 fps.
+## Trying it
 
-This plugin is experimental and requires validation on the physical board.
-See `README.nl.md` for configuration details and
-`components/esp_video_camera/NOTICE` for source attribution.
+The first pictures from a new board are what this plugin needs most. After the build, open the screen's log (ESPHome,
+the screen, Logs) and look for:
+
+- `Detected Camera sensor PID=0x5602`: the camera answers.
+- No line `failed to get configuration to initialize ISP controller`: the image tuning for this camera is in use, so
+  the picture adjusts its brightness and colours by itself.
+
+Then take a picture in a bright room and one in a dim room, and say in an issue whether the colours look right, whether
+the picture is the right way round, and whether the screen stays smooth while you watch the stream.
+
+## What it does not do yet
+
+- Colours start from a general tuning, not one measured for this camera: they may be a little off until it has been
+  tuned on a real board.
+- The picture is 1288 x 728 at up to two a second. The sensor can do 1920 x 1080 over two lanes; that waits for a test on
+  the board.
+
+## For makers
+
+The camera is ESPHome's camera with id `ts_camera` (the feature `camera`), so another plugin can build on it.
+
+- `components/esp_video_camera/`: the camera driver of Tessera's Screen camera plugin (`esp_video_camera`, from
+  [n-IA-hane/esphome-esp-video-camera](https://github.com/n-IA-hane/esphome-esp-video-camera), after ESPHome pull request
+  esphome/esphome#16944), with an OV02C10 sensor driver beside it (`ov02c10_sensor.c`): Espressif's camera library has
+  none. The driver sets exposure and gain on the sensor's own registers, so the ISP pipeline's auto exposure works, and
+  mirrors and flips without changing the colour order.
+- `components/esp_video_camera/build_stubs/ov02c10_ipa/`: the image tuning (`ov02c10.json`, started from Espressif's
+  SC2336 tuning with a wider white balance search) and an empty ESP-IDF component whose `project_include.cmake` hands it
+  to `esp_ipa`.
+- `components/jc8012_camera/`: the plugin itself, the top bar item.
+- The sensor answers on the board's touch bus (`touch_bus`, GPIO7 and GPIO8) at `0x36`, has its own clock and no reset or
+  power-down pin.
+- `.github/workflows/build.yml` builds the whole screen's firmware with this plugin on every push.
+
+Licences and where every file comes from: `components/esp_video_camera/NOTICE` and `LICENSE`.

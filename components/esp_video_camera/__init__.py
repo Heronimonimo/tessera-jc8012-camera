@@ -5,7 +5,8 @@ Publishes the Espressif esp_video (V4L2) stream to Home Assistant as a native
 hardware JPEG encoder, and with USB-UVC cameras.
 
 All Espressif sources are pulled through the IDF component manager as managed
-components. Nothing is vendored.
+components. The one exception is the OV02C10 sensor driver and its image tuning
+(ov02c10_sensor.c, build_stubs/ov02c10_ipa), which esp_cam_sensor does not have.
 """
 
 from pathlib import Path
@@ -220,13 +221,16 @@ async def to_code(config):
     if config[CONF_ENABLE_UVC]:
         add_idf_sdkconfig_option("CONFIG_ESP_VIDEO_ENABLE_USB_UVC_VIDEO_DEVICE", True)
 
-    # JC8012P4A1 v3 uses OV02C10 (PID 0x5602, SCCB 0x36). Espressif's published
-    # esp_cam_sensor 2.4.1 has no OV02C10 driver, so this component vendors the
-    # sensor registration and tables and enables its auto-detect entry.
-    for opt in (
-        "CONFIG_CAMERA_OV02C10",
-        "CONFIG_CAMERA_OV02C10_AUTO_DETECT",
-        "CONFIG_CAMERA_OV02C10_AUTO_DETECT_MIPI_INTERFACE_SENSOR",
-    ):
-        add_idf_sdkconfig_option(opt, True)
+    # JC8012P4A1 v3 uses OV02C10 (PID 0x5602, SCCB 0x36). Espressif's
+    # esp_cam_sensor has no OV02C10 driver, so ov02c10_sensor.c beside this file
+    # brings it; its options are fixed in ov02c10_compat.h, not in Kconfig.
+    # Nor does esp_cam_sensor bring the OV02C10's image tuning: without it the
+    # ISP pipeline starts without auto exposure and white balance ("failed to
+    # get configuration to initialize ISP controller"). An empty IDF component
+    # adds ov02c10.json to the files esp_ipa compiles (its project_include.cmake);
+    # ESP-IDF builds every component in the project's components folder.
+    if not config[CONF_DEVICE].startswith("uvc"):
+        ipa = Path(__file__).parent / "build_stubs" / "ov02c10_ipa"
+        for name in ("CMakeLists.txt", "project_include.cmake", "ov02c10.json"):
+            add_extra_build_file(f"components/ov02c10_ipa/{name}", ipa / name)
 

@@ -1,10 +1,12 @@
-# Camera for the Guition JC8012P4A1 v3. The board carries an OV02C10 on the ESP32-P4's two-lane MIPI-CSI interface.
-# SCCB shares touch_bus (GPIO7 SDA, GPIO8 SCL); the module has no external XCLK, reset or power-down GPIO.
+# JC8012 camera: the built-in camera of the Guition JC8012P4A1 v3 as a camera in Home Assistant. The board carries an
+# OmniVision OV02C10 on the ESP32-P4's MIPI-CSI port; its picture is made on the screen in hardware (the image processor,
+# with its own tuning for this sensor, and the JPEG encoder), only when Home Assistant asks for one. A camera in the top
+# bar shows while it does. It brings the camera as `ts_camera` for a plugin that builds on it.
 id: jc8012_camera
-version: 0.1.0
+version: 0.2.0
 api: "0.8"
 icon: cctv
-maintainer: Vincent
+maintainer: Heronimonimo
 license: GPL-3.0-only
 stage: beta
 topics: [home]
@@ -17,3 +19,7 @@ flash_kb: 300
 
 bar_items:
   - { id: watching, label: bar_watching, icon: cctv, example: bar_example }
+
+settings:
+  - { key: camera_mirror, label: setting_mirror, hint: setting_mirror_hint }
+  - { key: camera_flip, label: setting_flip, hint: setting_flip_hint }

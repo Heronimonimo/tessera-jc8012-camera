@@ -1,55 +1,59 @@
 # JC8012-camera
 
-Lokale Tessera-plugin voor de ingebouwde OV02C10-camera van de Guition
-JC8012P4A1 v3 (`jc8012p4a1v3`). De camera verschijnt als native ESPHome-camera
-in Home Assistant. De bovenbalk kan tonen wanneer een foto of stream actief is.
+Bekijk de ingebouwde camera van de Guition JC8012P4A1 v3 (het 10,1-inch scherm) in Home Assistant. Het scherm wordt daar
+een camera van zijn apparaat: een beeld op een dashboard, een stream als je het opent, en alles wat Home Assistant met
+een camera doet (een momentopname in een automatisering, een opname).
 
-## Hardware
+Het beeld wordt op het scherm in hardware gemaakt, alleen zolang Home Assistant erom vraagt. Zolang dat zo is, staat er
+een camera in de bovenbalk van het scherm, zodat wie ervoor staat het weet.
 
-- sensor: OV02C10, SCCB-adres `0x36`, product-id `0x5602`;
-- interface: het bord voert twee MIPI-CSI-datalanes uit; het bewezen
-  `1288x728`-sensorprofiel gebruikt lane 0;
-- SCCB: gedeelde Tessera-bus `touch_bus`, SDA GPIO7 en SCL GPIO8;
-- geen externe XCLK-, reset- of power-downpin volgens het bordschema;
-- vast sensorformaat: `1288x728`, maximaal 2 fps in deze plugin.
+> **Bèta.** Deze plugin bouwt, maar is nog niet op een echte JC8012P4A1 v3 geprobeerd. Probeer je hem, open dan
+> [een issue](https://github.com/Heronimonimo/tessera-jc8012-camera/issues) met wat je ziet (zie "Uitproberen" hieronder).
 
-## Installeren
+## Wat je nodig hebt
 
-Kopieer de hele map `jc8012_camera` naar:
+- Een Guition JC8012P4A1 **v3** met Tessera (bord `jc8012p4a1v3`). De eerste JC8012P4A1 en de V2 worden nog niet
+  ondersteund.
+- Verder niets in Home Assistant: de camera komt mee met het apparaat van het scherm in de ESPHome-integratie.
 
-```text
-/config/tessera-plugins/jc8012_camera/
-```
+## Instellen
 
-Open daarna Tessera, kies **Plugins**, installeer **JC8012-camera** op het
-scherm en laat Tessera bouwen. Tessera beheert `woonkamer.plugins.yaml`; voeg
-daarom geen tweede handmatige include voor dezelfde plugin toe.
+1. Open in Tessera **Plugins**, kies **Toevoegen met een link** en plak
+   `https://github.com/Heronimonimo/tessera-jc8012-camera`.
+2. Kies **JC8012-camera** en vink je JC8012P4A1 v3 aan. Het scherm bouwt één keer opnieuw, dat duurt even.
+3. Open in Home Assistant het apparaat van het scherm (Instellingen, Apparaten): de camera staat er als **Camera**. Zet
+   hem op een dashboard met een Afbeelding-entiteit- of Afbeelding-overzicht-kaart.
+4. Is het beeld gespiegeld of ondersteboven, zet dan **Beeld spiegelen** of **Beeld ondersteboven draaien** aan bij de
+   instellingen van de plugin op het tabblad Plugins van het scherm in Tessera (of de schakelaars **Camera mirror** en
+   **Camera flip** bij het apparaat in Home Assistant). Het volgende beeld komt gedraaid binnen.
+5. Optioneel: zet **Camera in gebruik** in de bovenbalk van een pagina (Bovenbalk, Toevoegen, Uit plugins). Hij staat er
+   zolang er beelden van het scherm gaan: "Live" bij een stream, "Camera" bij af en toe een beeld.
 
-Voor een volledig lokale ontwikkelopstelling kan `woonkamer.plugins.yaml`
-rechtstreeks bevatten:
+## Privacy
 
-```yaml
-packages:
-  jc8012_camera: !include tessera-plugins/jc8012_camera/plugin.yaml
+Er gaat niets van het scherm af tot Home Assistant om een beeld vraagt, en elk beeld gaat alleen naar jouw Home
+Assistant. Iedereen die het apparaat van het scherm of een dashboard met de camera kan openen, kan erdoor kijken. Wil je
+dat even niet, schakel dan de camera-entiteit in Home Assistant uit; voorgoed, verwijder dan de plugin van het scherm.
 
-external_components:
-  - source:
-      type: local
-      path: tessera-plugins/jc8012_camera/components
-    components: [esp_video_camera, jc8012_camera]
-```
+## Uitproberen
 
-Pas het relatieve pad aan als `tessera-plugins` niet naast de hoofdconfiguratie
-staat. Gebruik deze handmatige vorm alleen zonder Tessera's pluginbeheer.
+De eerste beelden van een echt bord zijn wat deze plugin het hardst nodig heeft. Open na het bouwen het log van het
+scherm (ESPHome, het scherm, Logs) en zoek naar:
 
-## Beperkingen
+- `Detected Camera sensor PID=0x5602`: de camera antwoordt.
+- Geen regel `failed to get configuration to initialize ISP controller`: de beeldafstemming voor deze camera wordt
+  gebruikt, dus het beeld regelt zelf helderheid en kleur.
 
-Experimenteel. Buildvalidatie vervangt geen test op het bord. De OV02C10-driver
-is afkomstig van `sullb/esphome-p4-csi-camera`; kleurkalibratie, langdurige
-stabiliteit en werkelijke framerate moeten op de hardware worden gecontroleerd.
+Maak daarna een beeld in een lichte en een in een donkere kamer, en meld in een issue of de kleuren kloppen, of het beeld
+goed om staat en of het scherm soepel blijft terwijl je de stream bekijkt.
 
-## Herkomst
+## Wat nog niet kan
 
-De ESPHome/esp-video-basis komt uit Tessera's `screen_camera`-plugin. De lokale
-OV02C10-driver en sensortabellen komen uit `sullb/esphome-p4-csi-camera`. Zie
-`components/esp_video_camera/NOTICE` en `LICENSE`.
+- De kleuren beginnen bij een algemene afstemming, niet bij een die voor deze camera is gemeten: ze kunnen wat afwijken
+  tot hij op een echt bord is afgestemd.
+- Het beeld is 1288 x 728, hooguit twee per seconde. De sensor kan 1920 x 1080 over twee lanes; dat wacht op een test op
+  het bord.
+
+## Voor makers
+
+Zie `README.md`, "For makers".

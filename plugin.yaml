@@ -1,12 +1,14 @@
-# JC8012P4A1 v3 camera. The OV02C10 SCCB lines share Tessera's existing touch_bus.
-# The module supplies its own clock and exposes no reset or power-down GPIO in the board schematic.
+# What a JC8012P4A1 v3 gets when it takes this plugin: its built-in OV02C10 camera as ESPHome's camera, which Home
+# Assistant shows as a camera of the screen's device, and the camera in the top bar while Home Assistant takes pictures.
+# The sensor answers on the board's touch bus (GPIO7 SDA, GPIO8 SCL) at 0x36, clocks itself and has no reset or
+# power-down pin, so nothing here owns a pin.
 
 # The sensor through the ESP32-P4's camera interface, image processor and hardware JPEG encoder (Espressif's esp_video).
-# Pictures are made only while Home Assistant asks for them, at most five a second; the pipeline rests five seconds
-# after the last one.
+# Pictures are made only while Home Assistant asks for them, at most two a second; the pipeline rests five seconds after
+# the last one. 1288x728 is the sensor mode proven on this board (one MIPI lane).
 esp_video_camera:
   id: ts_camera
-  name: "JC8012 camera"
+  name: "Camera"
   i2c_id: touch_bus
   enable_xclk: false
   xclk_pin: -1
@@ -14,6 +16,32 @@ esp_video_camera:
   resolution: 1288x728
   jpeg_quality: 12
   max_framerate: 2
+
+# The picture the right way round: the sensor mirrors and flips itself, so the image processor and the JPEG encoder have
+# no extra work. Both take effect on the next picture.
+switch:
+  - platform: template
+    id: jc8012_camera_mirror
+    name: "Camera mirror"
+    icon: mdi:flip-horizontal
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    entity_category: config
+    turn_on_action:
+      - lambda: id(ts_camera).set_runtime_hflip(true);
+    turn_off_action:
+      - lambda: id(ts_camera).set_runtime_hflip(false);
+  - platform: template
+    id: jc8012_camera_flip
+    name: "Camera flip"
+    icon: mdi:flip-vertical
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    entity_category: config
+    turn_on_action:
+      - lambda: id(ts_camera).set_runtime_vflip(true);
+    turn_off_action:
+      - lambda: id(ts_camera).set_runtime_vflip(false);
 
 jc8012_camera:
   camera: ts_camera
