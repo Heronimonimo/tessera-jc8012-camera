@@ -54,7 +54,9 @@ jobs:
         working-directory: tessera/checkout
         run: |
           build=$(ls -d .esphome/build/*/ | head -1)
-          map=$(find "$build" -name '*.map' | head -1)
+          # The firmware's own map, not the bootloader's (find's first hit on some builds).
+          map="$build/build/$(basename "$build").map"
+          echo "Map: $map"; test -f "$map"
           ipa=$(find "$build/build" -name 'esp_video_ipa_config.c' | head -1)
           echo "IPA configuration: $ipa"; grep -o '"[A-Z0-9]*"' "$ipa" | sort -u
           grep -q '"OV02C10"' "$ipa" || { echo "::error::no OV02C10 tuning"; exit 1; }
