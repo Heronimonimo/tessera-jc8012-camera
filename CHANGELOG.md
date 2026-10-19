@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5 - 2026-10-19
+- Sharper pictures with cleaner colours: they were compressed far too much (JPEG quality 12 of 100, now 80). Each
+  picture is larger, about 150 to 300 KB.
+
 ## 0.2.4 - 2026-10-19
 - Truer colours: whites and walls no longer look green-blue. Take a picture again to compare.
 

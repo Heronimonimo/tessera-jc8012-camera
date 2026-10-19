@@ -84,7 +84,11 @@ the black level and the brightness-dependent gamma of Espressif's rev3
 tunings (`sc2336_default_p4_eco5.json`, `os02n10_default_p4_eco5.json`), and
 its colour matrix is halfway between the SC2336 one and neutral. Since 0.2.4 its
 white balance scales red and blue (1.15, 1.3), as the rev3 SC2336 tuning does
-(1.1, 1.1). The `CMakeLists.txt` and
+(1.1, 1.1).
+
+Since 0.2.5 `__init__.py` takes `jpeg_quality` as esp_video does (1 to 100,
+higher is better, default 80) instead of 1 to 63 (default 10); the default in
+`esp_video_camera.h` follows. The `CMakeLists.txt` and
 `project_include.cmake` beside it are this plugin's own.
 
 The earlier `cfg/sc202cs.json` was removed: no sensor of this board uses it.

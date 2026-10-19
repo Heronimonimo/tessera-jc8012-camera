@@ -14,7 +14,7 @@ esp_video_camera:
   xclk_pin: -1
   device: jpeg
   resolution: 1288x728
-  jpeg_quality: 12
+  jpeg_quality: 80                 # 1 to 100, higher is better: a picture of about 150 to 300 KB
   max_framerate: 2
 
 # The picture the right way round: the sensor mirrors and flips itself, so the image processor and the JPEG encoder have

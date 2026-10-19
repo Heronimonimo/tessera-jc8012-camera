@@ -1,5 +1,9 @@
 # Wijzigingen
 
+## 0.2.5 - 2026-10-19
+- Scherpere beelden met schonere kleuren: ze werden veel te sterk gecomprimeerd (JPEG-kwaliteit 12 van 100, nu 80).
+  Elk beeld is groter, ongeveer 150 tot 300 KB.
+
 ## 0.2.4 - 2026-10-19
 - Echtere kleuren: wit en muren zien er niet meer groenblauw uit. Maak opnieuw een beeld om te vergelijken.
 
