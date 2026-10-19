@@ -1,5 +1,8 @@
 # Wijzigingen
 
+## 0.2.4 - 2026-10-19
+- Echtere kleuren: wit en muren zien er niet meer groenblauw uit. Maak opnieuw een beeld om te vergelijken.
+
 ## 0.2.3 - 2026-10-19
 - Beter beeld: diepere zwarten en meer contrast in plaats van een grijze waas, minder blauwgroene zweem in de schaduwen
   en rustigere kleuren. Maak in dezelfde kamer opnieuw een beeld om te vergelijken.

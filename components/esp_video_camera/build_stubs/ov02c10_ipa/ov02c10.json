@@ -22,7 +22,9 @@
             },
             "green_luma_env": "dummy_awb_luma",
             "green_luma_init": 91,
-            "green_luma_step_ratio": 0.3
+            "green_luma_step_ratio": 0.3,
+            "red_gain_scale": 1.15,
+            "blue_gain_scale": 1.3
         },
         "agc": {
             "exposure": {

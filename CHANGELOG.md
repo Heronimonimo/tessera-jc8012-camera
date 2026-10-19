@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.4 - 2026-10-19
+- Truer colours: whites and walls no longer look green-blue. Take a picture again to compare.
+
 ## 0.2.3 - 2026-10-19
 - Better picture: deeper blacks and more contrast instead of a grey haze, less of a teal cast in the shadows, and
   calmer colours. Take a picture again in the same room to compare.
