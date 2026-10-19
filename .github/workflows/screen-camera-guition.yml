@@ -15,12 +15,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        board: [jc8012p4a1v3, jc4880p443, reterminald1001]
+        include:
+          - { plugins: screen-camera-ov02c10, board: jc8012p4a1v3, ov02c10: true }
+          - { plugins: screen-camera-ov02c10, board: jc4880p443, ov02c10: true }
+          - { plugins: screen-camera-ov02c10, board: reterminald1001, ov02c10: true }
+          - { plugins: screen-camera-jpeg-quality, board: reterminald1001, ov02c10: false }
+          - { plugins: screen-camera-light-motion, board: jc8012p4a1v3, ov02c10: false }
+          - { plugins: screen-camera-light-motion, board: reterminald1001, ov02c10: false }
     steps:
       - uses: actions/checkout@v4
         with: { repository: Heronimonimo/homeassistant_espscreen, ref: guition-ov02c10-camera, path: tessera }
       - uses: actions/checkout@v4
-        with: { repository: Heronimonimo/tessera-plugins, ref: screen-camera-ov02c10, path: plugins }
+        with: { repository: Heronimonimo/tessera-plugins, ref: "${{ matrix.plugins }}", path: plugins }
       - uses: actions/setup-python@v5
         with: { python-version: "3.13" }
       - run: python -m pip install "esphome==2026.9.0" pyyaml
@@ -51,6 +57,7 @@ jobs:
         working-directory: tessera/checkout
         run: esphome compile ci-camera.yaml
       - name: What only the build shows
+        if: matrix.ov02c10
         working-directory: tessera/checkout
         run: |
           build=$(ls -d .esphome/build/*/ | head -1)
