@@ -44,7 +44,8 @@ screen in the evening, switch a light when someone comes in, and wake the screen
 - **Camera activity** says what the camera does now: Live (a stream), Picture (a picture now and then), Sensing
   (light and motion only), Idle or Failed.
 - **Motion** compares the picture in a coarse grid twice a second and turns on when part of it changes, for at least ten
-  seconds. A change of the whole picture (a light switched on, the camera adjusting its exposure) is not motion.
+  seconds. A light switched on or off (most of the picture brighter or darker at once) is not motion: for three seconds after
+  it, while the camera adjusts, motion is not judged.
 - While this is on the camera runs all the time, at two frames a second. No picture is encoded or sent for it: only the
   two numbers leave the screen.
 

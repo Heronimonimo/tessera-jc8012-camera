@@ -1,5 +1,9 @@
 # Wijzigingen
 
+## 0.3.2 - 2026-10-19
+- Een lamp aan- of uitzetten telt niet meer als beweging. Drie seconden na een lichtverandering, terwijl de camera zich
+  aanpast, wordt beweging niet beoordeeld.
+
 ## 0.3.1 - 2026-10-19
 - Het beeld is standaard geen spiegelbeeld meer: links is links, zoals een camera aan de muur het hoort te tonen. Had je
   **Beeld spiegelen** aangezet om dat te verhelpen, zet het dan weer uit.

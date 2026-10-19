@@ -112,6 +112,7 @@ class JC8012Camera : public Component,
   bool grid_valid_{false};
   uint32_t last_sample_ms_{0};
   uint32_t last_exposure_product_{0};
+  uint32_t settle_until_ms_{0};     // no motion before this: the light changed and the camera is settling
   float light_level_{-1.0f};   // smoothed light level in lux, on the camera's task
   // What the camera's task found, for the main loop.
   std::atomic<uint32_t> sensed_frames_{0};

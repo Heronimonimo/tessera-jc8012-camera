@@ -45,8 +45,8 @@ De camera geeft het scherm ook een **lichtniveau** en een **bewegingssensor**, b
 - **Camera activity** zegt wat de camera nu doet: Live (een stream), Picture (af en toe een beeld), Sensing (alleen
   licht en beweging), Idle of Failed.
 - **Motion** vergelijkt het beeld twee keer per seconde in een grof raster en gaat aan als een deel ervan verandert,
-  minstens tien seconden. Een verandering van het hele beeld (een lamp die aangaat, de camera die zijn belichting
-  aanpast) is geen beweging.
+  minstens tien seconden. Een lamp die aan- of uitgaat (het grootste deel van het beeld tegelijk lichter of donkerder) is
+  geen beweging: drie seconden daarna, terwijl de camera zich aanpast, wordt beweging niet beoordeeld.
 - Zolang dit aan staat draait de camera steeds, twee beelden per seconde. Er wordt hiervoor geen beeld gemaakt of
   verstuurd: alleen de twee waarden gaan van het scherm af.
 

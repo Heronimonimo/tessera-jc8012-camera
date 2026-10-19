@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2 - 2026-10-19
+- Switching a light on or off is no longer seen as motion. For three seconds after a light change, while the camera
+  adjusts, motion is not judged.
+
 ## 0.3.1 - 2026-10-19
 - The picture is no longer a mirror image by default: left is left, as a camera on the wall should show it. If you had
   switched **Mirror the picture** on to correct it, switch it off again.

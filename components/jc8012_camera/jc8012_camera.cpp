@@ -30,8 +30,16 @@ static constexpr uint32_t SAMPLE_MS = 400;
 static constexpr int MOTION_CELL_THRESHOLD = 14;
 // Motion: at least this many of the 576 cells changed between two samples.
 static constexpr int MOTION_CELLS = 6;
-// Exposure x gain moving more than this between two samples is auto exposure at work, not motion: no comparison then.
+// Exposure x gain moving more than this between two samples is auto exposure at work, not motion.
 static constexpr float EXPOSURE_STEP = 0.10f;
+// 40% of the cells or more changing the same way at once (all brighter, or all darker) is a light switched on or off,
+// not someone moving: a lamp lights the room unevenly, a person changes one part of it, some cells brighter and some
+// darker.
+static constexpr int LIGHT_CHANGE_CELLS = 32 * 18 * 2 / 5;
+// After a light change auto exposure, white balance and the gamma (which follows the scene's brightness) take a few
+// seconds to settle, and every frame of it looks different: no motion is judged for this long (a light switched on gave
+// motion).
+static constexpr uint32_t SETTLE_MS = 3000;
 // Motion stays on this long after the last changed sample (plugin.yaml adds its own hold for Home Assistant).
 static constexpr uint32_t MOTION_ON_MS = 2500;
 // The light level goes to Home Assistant at most this often, unless it changed a lot.
@@ -105,6 +113,7 @@ void JC8012Camera::apply_sensing_() {
     grid_valid_ = false;
     light_level_ = -1.0f;
     last_exposure_product_ = 0;
+    settle_until_ms_ = millis() + SETTLE_MS;
     if (!video->register_raw_frame_consumer(this, esp_video_camera::RawVideoPixelFormat::RGB565_LE) ||
         !video->start_raw_frame_consumer(this)) {
       ESP_LOGW(TAG, "The camera does not hand out its frames; no light level or motion");
@@ -158,21 +167,35 @@ void JC8012Camera::consume_raw_video_frame(const esp_video_camera::RawVideoFrame
   ov02c10_sensor_exposure(&lines, &gain_x16, &tline_ns);
   const uint32_t product = lines * gain_x16;
 
-  // Motion: cells that changed by more than the whole frame did (auto exposure moves all of them together).
+  // A light change: auto exposure moving, or most of the frame brighter or darker at once (below). Then the camera
+  // settles first.
   const bool exposure_steady =
       last_exposure_product_ != 0 && product != 0 &&
       std::fabs(static_cast<float>(product) - static_cast<float>(last_exposure_product_)) <=
           EXPOSURE_STEP * static_cast<float>(last_exposure_product_);
-  if (grid_valid_ && exposure_steady) {
-    int shift = 0;
-    for (int i = 0; i < GRID_W * GRID_H; i++) shift += grid[i] - grid_[i];
-    shift /= GRID_W * GRID_H;
+  if (!exposure_steady) settle_until_ms_ = now + SETTLE_MS;
+  const bool settled = static_cast<int32_t>(now - settle_until_ms_) >= 0;
+
+  // Motion: cells that changed by more than the whole frame did.
+  if (grid_valid_ && settled) {
     const int threshold = MOTION_CELL_THRESHOLD + static_cast<int>(gain_x16 / 16);
+    int shift = 0, brighter = 0, darker = 0;
+    for (int i = 0; i < GRID_W * GRID_H; i++) {
+      const int d = grid[i] - grid_[i];
+      shift += d;
+      if (d > threshold) brighter++;
+      if (d < -threshold) darker++;
+    }
+    shift /= GRID_W * GRID_H;
     int changed = 0;
     for (int i = 0; i < GRID_W * GRID_H; i++) {
       if (std::abs(grid[i] - grid_[i] - shift) > threshold) changed++;
     }
-    if (changed >= MOTION_CELLS) last_motion_ms_.store(now == 0 ? 1 : now);
+    if (brighter >= LIGHT_CHANGE_CELLS || darker >= LIGHT_CHANGE_CELLS) {
+      settle_until_ms_ = now + SETTLE_MS;
+    } else if (changed >= MOTION_CELLS) {
+      last_motion_ms_.store(now == 0 ? 1 : now);
+    }
   }
   memcpy(grid_, grid, sizeof(grid_));
   grid_valid_ = true;
