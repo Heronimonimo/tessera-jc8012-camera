@@ -9,12 +9,17 @@
  },
  "app": {
   "name": "JC8012 camera",
-  "summary": "The JC8012P4A1 v3's built-in camera in Home Assistant, with a camera in the top bar while it is watched.",
+  "summary": "The JC8012P4A1 v3's built-in camera in Home Assistant, with a light level and motion worked out on the screen.",
   "bar_watching": "Camera in use",
   "bar_example": "Live",
   "setting_mirror": "Mirror the picture",
   "setting_mirror_hint": "Swap left and right, for a picture that looks like a mirror or the other way round.",
   "setting_flip": "Turn the picture upside down",
-  "setting_flip_hint": "For a picture that comes out upside down."
+  "setting_flip_hint": "For a picture that comes out upside down.",
+  "bar_sensing": "Camera senses motion",
+  "setting_sensing": "Light level and motion",
+  "setting_sensing_hint": "The camera measures the room's light and notices movement, on the screen itself: no picture leaves it for this. The camera stays on while this is on.",
+  "setting_wake": "Wake the screen on motion",
+  "setting_wake_hint": "Someone moving in front of the screen wakes it from standby, as a touch does."
  }
 }

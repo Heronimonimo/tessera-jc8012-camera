@@ -186,6 +186,19 @@ static const esp_cam_sensor_format_t ov02c10_format_info[] = {
     },
 };
 
+// The exposure and gain the ISP pipeline set last, and one line's time, for the jc8012_camera plugin's light level.
+// Written by this driver (the camera's own task), read by the plugin: each a single 32-bit word.
+static volatile uint32_t s_exposure_lines;
+static volatile uint32_t s_gain_x16;
+static volatile uint32_t s_tline_ns;
+
+void ov02c10_sensor_exposure(uint32_t *lines, uint32_t *gain_x16, uint32_t *tline_ns)
+{
+    *lines = s_exposure_lines;
+    *gain_x16 = s_gain_x16;
+    *tline_ns = s_tline_ns;
+}
+
 // Referenced by esp_video_camera.cpp so the static component archive keeps this
 // object file and, with it, ESP_CAM_SENSOR_DETECT_FN's linker-section entry.
 void ov02c10_sensor_link_anchor(void)
@@ -310,6 +323,8 @@ static esp_err_t ov02c10_set_exposure(esp_cam_sensor_device_t *dev, uint32_t lin
     ret |= ov02c10_write(dev->sccb_handle, OV02C10_REG_EXPOSURE_L, lines & 0xff);
     if (ret == ESP_OK) {
         state->exposure_val = lines;
+        s_exposure_lines = lines;
+        s_tline_ns = dev->cur_format->isp_info->isp_v1_info.tline_ns;
     }
     return ret;
 }
@@ -324,6 +339,7 @@ static esp_err_t ov02c10_set_gain_index(esp_cam_sensor_device_t *dev, uint32_t i
     ret |= ov02c10_write(dev->sccb_handle, OV02C10_REG_ANALOG_GAIN_L, reg & 0xff);
     if (ret == ESP_OK) {
         state->gain_index = index;
+        s_gain_x16 = index + OV02C10_GAIN_STEP_MIN;
     }
     return ret;
 }

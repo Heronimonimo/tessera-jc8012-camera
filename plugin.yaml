@@ -42,6 +42,27 @@ switch:
       - lambda: id(ts_camera).set_runtime_vflip(true);
     turn_off_action:
       - lambda: id(ts_camera).set_runtime_vflip(false);
+  # Light level and motion from the camera's frames, worked out on the screen: no picture leaves it for them. While it is
+  # on the camera keeps running (at the two frames a second above), and the eye can show in the top bar.
+  - platform: template
+    id: jc8012_camera_sensing
+    name: "Camera motion and light"
+    icon: mdi:motion-sensor
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
+    turn_on_action:
+      - lambda: id(jc8012_camera_plugin).set_sensing(true);
+    turn_off_action:
+      - lambda: id(jc8012_camera_plugin).set_sensing(false);
+  # Motion wakes the screen from standby, as a touch does (Tessera's own wake_display script).
+  - platform: template
+    id: jc8012_camera_wake
+    name: "Wake screen on motion"
+    icon: mdi:monitor-eye
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
 
 # Why the camera does or does not work, for Home Assistant: the camera starts before Home Assistant connects, so the
 # plugin keeps what the camera said in the log while it started (the sensor found, errors of the image pipeline).
@@ -54,5 +75,18 @@ text_sensor:
     update_interval: never
 
 jc8012_camera:
+  id: jc8012_camera_plugin
   camera: ts_camera
   status: jc8012_camera_status
+  illuminance:
+    name: "Light level"
+  motion:
+    name: "Motion"
+    filters:
+      - delayed_off: 10s
+    on_press:
+      - if:
+          condition:
+            switch.is_on: jc8012_camera_wake
+          then:
+            - script.execute: wake_display

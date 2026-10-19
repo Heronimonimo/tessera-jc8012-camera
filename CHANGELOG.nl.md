@@ -1,5 +1,14 @@
 # Wijzigingen
 
+## 0.3.0 - 2026-10-19
+- Nieuw: **Light level** (lux, een schatting) en **Motion** bij het apparaat van het scherm in Home Assistant, bepaald
+  door de camera op het scherm zelf: hiervoor gaat geen beeld van het scherm af. Gebruik het lichtniveau om het scherm
+  's avonds te dimmen, beweging voor automatiseringen.
+- Nieuw: beweging wekt het scherm uit stand-by (instelling **Scherm wekken bij beweging**).
+- Beide staan na de update aan. Zet **Lichtniveau en beweging** uit bij de instellingen van de plugin om ze te stoppen;
+  de camera draait dan weer alleen als Home Assistant om beelden vraagt.
+- Optioneel item voor de bovenbalk **Camera ziet beweging**: een oog zolang de camera kijkt.
+
 ## 0.2.5 - 2026-10-19
 - Scherpere beelden met schonere kleuren: ze werden veel te sterk gecomprimeerd (JPEG-kwaliteit 12 van 100, nu 80).
   Elk beeld is groter, ongeveer 150 tot 300 KB.

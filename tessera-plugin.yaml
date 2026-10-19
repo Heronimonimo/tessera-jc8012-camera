@@ -1,9 +1,10 @@
 # JC8012 camera: the built-in camera of the Guition JC8012P4A1 v3 as a camera in Home Assistant. The board carries an
 # OmniVision OV02C10 on the ESP32-P4's MIPI-CSI port; its picture is made on the screen in hardware (the image processor,
 # with its own tuning for this sensor, and the JPEG encoder), only when Home Assistant asks for one. A camera in the top
-# bar shows while it does. It brings the camera as `ts_camera` for a plugin that builds on it.
+# bar shows while it does. It brings the camera as `ts_camera` for a plugin that builds on it. It also reads the room's
+# light level and motion from the camera on the screen (no picture leaves it for them), and motion can wake the screen.
 id: jc8012_camera
-version: 0.2.5
+version: 0.3.0
 api: "0.8"
 icon: cctv
 maintainer: Heronimonimo
@@ -19,7 +20,10 @@ flash_kb: 300
 
 bar_items:
   - { id: watching, label: bar_watching, icon: cctv, example: bar_example }
+  - { id: sensing, label: bar_sensing, icon: eye }
 
 settings:
   - { key: camera_mirror, label: setting_mirror, hint: setting_mirror_hint }
   - { key: camera_flip, label: setting_flip, hint: setting_flip_hint }
+  - { key: camera_motion_and_light, label: setting_sensing, hint: setting_sensing_hint }
+  - { key: wake_screen_on_motion, label: setting_wake, hint: setting_wake_hint }

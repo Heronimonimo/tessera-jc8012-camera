@@ -7,7 +7,10 @@ een camera doet (een momentopname in een automatisering, een opname).
 Het beeld wordt op het scherm in hardware gemaakt, alleen zolang Home Assistant erom vraagt. Zolang dat zo is, staat er
 een camera in de bovenbalk van het scherm, zodat wie ervoor staat het weet.
 
-> **Bèta.** Deze plugin bouwt, maar is nog niet op een echte JC8012P4A1 v3 geprobeerd. Probeer je hem, open dan
+De camera geeft het scherm ook een **lichtniveau** en een **bewegingssensor**, bepaald op het scherm zelf: dim het scherm
+'s avonds, doe een lamp aan als iemand binnenkomt, en wek het scherm als iemand ervoor komt staan.
+
+> **Bèta.** De camera werkt op een JC8012P4A1 v3; kleuren, lichtniveau en beweging worden nog afgesteld. Open
 > [een issue](https://github.com/Heronimonimo/tessera-jc8012-camera/issues) met wat je ziet (zie "Uitproberen" hieronder).
 
 ## Wat je nodig hebt
@@ -29,10 +32,23 @@ een camera in de bovenbalk van het scherm, zodat wie ervoor staat het weet.
 5. Optioneel: zet **Camera in gebruik** in de bovenbalk van een pagina (Bovenbalk, Toevoegen, Uit plugins). Hij staat er
    zolang er beelden van het scherm gaan: "Live" bij een stream, "Camera" bij af en toe een beeld.
 
+## Lichtniveau en beweging
+
+- **Light level** is een schatting in lux uit de helderheid van het beeld, de belichtingstijd en de versterking van de
+  sensor. Hij klopt in verhouding (twee keer zoveel licht is ongeveer twee keer zoveel lux), niet precies: kies de
+  drempels van je automatiseringen door te kijken wat hij in jouw kamer meet.
+- **Motion** vergelijkt het beeld twee keer per seconde in een grof raster en gaat aan als een deel ervan verandert,
+  minstens tien seconden. Een verandering van het hele beeld (een lamp die aangaat, de camera die zijn belichting
+  aanpast) is geen beweging. Beweging wekt het scherm uit stand-by; zet **Scherm wekken bij beweging** uit als je dat niet
+  wilt, of **Lichtniveau en beweging** om beide te stoppen.
+- Zolang dit aan staat draait de camera steeds, twee beelden per seconde. Er wordt hiervoor geen beeld gemaakt of
+  verstuurd: alleen de twee waarden gaan van het scherm af.
+
 ## Privacy
 
-Er gaat niets van het scherm af tot Home Assistant om een beeld vraagt, en elk beeld gaat alleen naar jouw Home
-Assistant. Iedereen die het apparaat van het scherm of een dashboard met de camera kan openen, kan erdoor kijken. Wil je
+Er gaat niets dan het lichtniveau en beweging van het scherm af tot Home Assistant om een beeld vraagt, en elk beeld gaat
+alleen naar jouw Home Assistant. Zolang lichtniveau en beweging aan staan kijkt de camera steeds, maar wat hij ziet blijft
+op het scherm; zet **Camera ziet beweging** in de bovenbalk om dat te laten zien. Iedereen die het apparaat van het scherm of een dashboard met de camera kan openen, kan erdoor kijken. Wil je
 dat even niet, schakel dan de camera-entiteit in Home Assistant uit; voorgoed, verwijder dan de plugin van het scherm.
 
 ## Uitproberen

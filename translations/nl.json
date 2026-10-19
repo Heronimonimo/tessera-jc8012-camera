@@ -9,12 +9,17 @@
  },
  "app": {
   "name": "JC8012-camera",
-  "summary": "De ingebouwde camera van de JC8012P4A1 v3 in Home Assistant, met een camera in de bovenbalk zolang er iemand kijkt.",
+  "summary": "De ingebouwde camera van de JC8012P4A1 v3 in Home Assistant, met lichtniveau en beweging, bepaald op het scherm.",
   "bar_watching": "Camera in gebruik",
   "bar_example": "Live",
   "setting_mirror": "Beeld spiegelen",
   "setting_mirror_hint": "Wisselt links en rechts, voor een beeld als in een spiegel of juist andersom.",
   "setting_flip": "Beeld ondersteboven draaien",
-  "setting_flip_hint": "Voor een beeld dat ondersteboven binnenkomt."
+  "setting_flip_hint": "Voor een beeld dat ondersteboven binnenkomt.",
+  "bar_sensing": "Camera ziet beweging",
+  "setting_sensing": "Lichtniveau en beweging",
+  "setting_sensing_hint": "De camera meet het licht in de kamer en merkt beweging op, op het scherm zelf: hiervoor gaat geen beeld van het scherm af. De camera blijft aan zolang dit aan staat.",
+  "setting_wake": "Scherm wekken bij beweging",
+  "setting_wake_hint": "Iemand die voor het scherm beweegt, wekt het uit stand-by, zoals een aanraking."
  }
 }

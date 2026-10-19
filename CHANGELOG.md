@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 - 2026-10-19
+- New: **Light level** (lux, an estimate) and **Motion** on the screen's device in Home Assistant, worked out from the
+  camera on the screen itself: no picture leaves the screen for them. Use the light level to dim the screen in the
+  evening, motion for automations.
+- New: motion wakes the screen from standby (setting **Wake the screen on motion**).
+- Both are on after the update. Turn off **Light level and motion** in the plugin's settings to stop them; the camera
+  then only runs while Home Assistant asks for pictures, as before.
+- Optional top bar item **Camera senses motion**: an eye while the camera senses.
+
 ## 0.2.5 - 2026-10-19
 - Sharper pictures with cleaner colours: they were compressed far too much (JPEG quality 12 of 100, now 80). Each
   picture is larger, about 150 to 300 KB.
