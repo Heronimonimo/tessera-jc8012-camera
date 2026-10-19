@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3 - 2026-10-19
+- Better picture: deeper blacks and more contrast instead of a grey haze, less of a teal cast in the shadows, and
+  calmer colours. Take a picture again in the same room to compare.
+
 ## 0.2.2 - 2026-10-19
 - Fixed: **Turn the picture upside down** stopped the camera (the picture was moved one row past the sensor's edge).
   After the update the camera works with it on or off.

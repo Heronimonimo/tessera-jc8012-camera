@@ -1,5 +1,9 @@
 # Wijzigingen
 
+## 0.2.3 - 2026-10-19
+- Beter beeld: diepere zwarten en meer contrast in plaats van een grijze waas, minder blauwgroene zweem in de schaduwen
+  en rustigere kleuren. Maak in dezelfde kamer opnieuw een beeld om te vergelijken.
+
 ## 0.2.2 - 2026-10-19
 - Opgelost: **Beeld ondersteboven draaien** liet de camera stoppen (het beeld schoof één rij over de rand van de sensor).
   Na de update werkt de camera met de instelling aan en uit.

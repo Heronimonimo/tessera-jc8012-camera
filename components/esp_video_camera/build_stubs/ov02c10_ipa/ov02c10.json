@@ -171,16 +171,31 @@
                     {
                         "color_temp": 0,
                         "matrix": [
-                            1.408,
-                            -0.094,
-                            -0.314,
-                            -0.13,
-                            1.28,
-                            -0.15,
-                            -0.072,
-                            -0.173,
-                            1.245
+                            1.204,
+                            -0.047,
+                            -0.157,
+                            -0.065,
+                            1.14,
+                            -0.075,
+                            -0.036,
+                            -0.0865,
+                            1.1225
                         ]
+                    }
+                ]
+            },
+            "blc": {
+                "model": 0,
+                "stretch": false,
+                "blc_table": [
+                    {
+                        "gain": 1,
+                        "blc_param": {
+                            "blc_top_left": 16,
+                            "blc_top_right": 16,
+                            "blc_bottom_left": 16,
+                            "blc_bottom_right": 16
+                        }
                     }
                 ]
             }
@@ -329,12 +344,20 @@
         "aen": {
             "gamma": {
                 "use_gamma_param": true,
-                "luma_env": "ae.luma.avg",
-                "luma_min_step": 16.0,
+                "luma_env": "env.luma.avg",
+                "luma_min_step": 3.0,
                 "table": [
                     {
-                        "luma": 71.1,
-                        "gamma_param": 0.518
+                        "luma": 30.1,
+                        "gamma_param": 0.51
+                    },
+                    {
+                        "luma": 90.1,
+                        "gamma_param": 0.585
+                    },
+                    {
+                        "luma": 360.1,
+                        "gamma_param": 0.605
                     }
                 ]
             },

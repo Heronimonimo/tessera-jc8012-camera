@@ -79,7 +79,10 @@ calls `ov02c10_sensor_link_anchor()` and `__init__.py` adds the files below.
 `build_stubs/ov02c10_ipa/ov02c10.json` is an IPA (image tuning) configuration
 derived from Espressif's `sc2336_default_p4_eco4.json` (esp_cam_sensor,
 Apache-2.0) on 2026-10-19: the same blocks under the name OV02C10, with a wider
-white balance search range and a neutral saturation. The `CMakeLists.txt` and
+white balance search range and a neutral saturation. Since 0.2.3 it also has
+the black level and the brightness-dependent gamma of Espressif's rev3
+tunings (`sc2336_default_p4_eco5.json`, `os02n10_default_p4_eco5.json`), and
+its colour matrix is halfway between the SC2336 one and neutral. The `CMakeLists.txt` and
 `project_include.cmake` beside it are this plugin's own.
 
 The earlier `cfg/sc202cs.json` was removed: no sensor of this board uses it.

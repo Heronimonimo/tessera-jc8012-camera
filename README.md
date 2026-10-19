@@ -66,7 +66,8 @@ The camera is ESPHome's camera with id `ts_camera` (the feature `camera`), so an
   none. The driver sets exposure and gain on the sensor's own registers, so the ISP pipeline's auto exposure works, and
   mirrors and flips without changing the colour order.
 - `components/esp_video_camera/build_stubs/ov02c10_ipa/`: the image tuning (`ov02c10.json`, started from Espressif's
-  SC2336 tuning with a wider white balance search) and an empty ESP-IDF component whose `project_include.cmake` hands it
+  SC2336 tuning with a wider white balance search, black level 16, the rev3 gamma and a colour matrix halfway to
+  neutral) and an empty ESP-IDF component whose `project_include.cmake` hands it
   to `esp_ipa`.
 - `components/jc8012_camera/`: the plugin itself, the top bar item.
 - The sensor answers on the board's touch bus (`touch_bus`, GPIO7 and GPIO8) at `0x36`, has its own clock and no reset or
