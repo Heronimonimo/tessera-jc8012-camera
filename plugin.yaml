@@ -43,5 +43,16 @@ switch:
     turn_off_action:
       - lambda: id(ts_camera).set_runtime_vflip(false);
 
+# Why the camera does or does not work, for Home Assistant: the camera starts before Home Assistant connects, so the
+# plugin keeps what the camera said in the log while it started (the sensor found, errors of the image pipeline).
+text_sensor:
+  - platform: template
+    id: jc8012_camera_status
+    name: "Camera status"
+    icon: mdi:cctv
+    entity_category: diagnostic
+    update_interval: never
+
 jc8012_camera:
   camera: ts_camera
+  status: jc8012_camera_status

@@ -37,12 +37,14 @@ dat even niet, schakel dan de camera-entiteit in Home Assistant uit; voorgoed, v
 
 ## Uitproberen
 
-De eerste beelden van een echt bord zijn wat deze plugin het hardst nodig heeft. Open na het bouwen het log van het
-scherm (ESPHome, het scherm, Logs) en zoek naar:
+De eerste beelden van een echt bord zijn wat deze plugin het hardst nodig heeft. Open na het bouwen het apparaat van
+het scherm in Home Assistant en kijk bij **Camera status** (onder Diagnose). De camera start voordat Home Assistant
+verbinding maakt, dus hier komt terecht wat hij tijdens het opstarten meldde:
 
 - `Detected Camera sensor PID=0x5602`: de camera antwoordt.
-- Geen regel `failed to get configuration to initialize ISP controller`: de beeldafstemming voor deze camera wordt
-  gebruikt, dus het beeld regelt zelf helderheid en kleur.
+- Geen `failed to get configuration to initialize ISP controller`: de beeldafstemming voor deze camera wordt gebruikt,
+  dus het beeld regelt zelf helderheid en kleur.
+- `Failed: ...`: de camera is niet gestart, en de rest zegt waarom. Kopieer het in het issue.
 
 Maak daarna een beeld in een lichte en een in een donkere kamer, en meld in een issue of de kleuren kloppen, of het beeld
 goed om staat en of het scherm soepel blijft terwijl je de stream bekijkt.

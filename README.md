@@ -37,12 +37,14 @@ disable the camera entity in Home Assistant; to stop it for good, remove the plu
 
 ## Trying it
 
-The first pictures from a new board are what this plugin needs most. After the build, open the screen's log (ESPHome,
-the screen, Logs) and look for:
+The first pictures from a new board are what this plugin needs most. After the build, open the screen's device in Home
+Assistant and look at **Camera status** (under Diagnostic). The camera starts before Home Assistant connects, so this is
+where what it said while it started ends up:
 
 - `Detected Camera sensor PID=0x5602`: the camera answers.
-- No line `failed to get configuration to initialize ISP controller`: the image tuning for this camera is in use, so
-  the picture adjusts its brightness and colours by itself.
+- No `failed to get configuration to initialize ISP controller`: the image tuning for this camera is in use, so the
+  picture adjusts its brightness and colours by itself.
+- `Failed: ...`: the camera did not start, and the rest says why. Copy it into the issue.
 
 Then take a picture in a bright room and one in a dim room, and say in an issue whether the colours look right, whether
 the picture is the right way round, and whether the screen stays smooth while you watch the stream.

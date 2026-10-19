@@ -1,5 +1,9 @@
 # Wijzigingen
 
+## 0.2.1 - 2026-10-19
+- Nieuw: **Camera status** bij het apparaat van het scherm in Home Assistant (onder Diagnose). Hij zegt of de camera
+  werkt, en zo niet, wat de camera meldde terwijl het scherm opstartte. Stuur hem mee als je een probleem meldt.
+
 ## 0.2.0 - 2026-10-19
 - Het beeld regelt nu zelf helderheid en witbalans: de camera heeft een eigen beeldafstemming, en de sensordriver zet
   belichting en versterking in de eigen registers van de OV02C10.

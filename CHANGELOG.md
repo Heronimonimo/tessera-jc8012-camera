@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 - 2026-10-19
+- New: **Camera status** on the screen's device in Home Assistant (under Diagnostic). It says whether the camera works,
+  and when it does not, what the camera reported while the screen started. Please send it along when you report a
+  problem.
+
 ## 0.2.0 - 2026-10-19
 - The picture now sets its own brightness and white balance: the camera has image tuning of its own, and the sensor
   driver sets exposure and gain on the OV02C10's own registers.

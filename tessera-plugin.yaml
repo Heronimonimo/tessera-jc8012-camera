@@ -3,7 +3,7 @@
 # with its own tuning for this sensor, and the JPEG encoder), only when Home Assistant asks for one. A camera in the top
 # bar shows while it does. It brings the camera as `ts_camera` for a plugin that builds on it.
 id: jc8012_camera
-version: 0.2.0
+version: 0.2.1
 api: "0.8"
 icon: cctv
 maintainer: Heronimonimo
