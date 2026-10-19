@@ -4,7 +4,7 @@
 # bar shows while it does. It brings the camera as `ts_camera` for a plugin that builds on it. It also reads the room's
 # light level and motion from the camera on the screen (no picture leaves it for them), and motion can wake the screen.
 id: jc8012_camera
-version: 0.3.2
+version: 0.3.3
 api: "0.8"
 icon: cctv
 maintainer: Heronimonimo

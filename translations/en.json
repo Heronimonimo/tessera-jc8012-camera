@@ -9,7 +9,7 @@
  },
  "app": {
   "name": "JC8012 camera",
-  "summary": "The JC8012P4A1 v3's built-in camera in Home Assistant, with a light level and motion worked out on the screen.",
+  "summary": "Moving into Tessera's Screen camera: the JC8012P4A1 v3's camera, light level and motion, until then.",
   "bar_watching": "Camera in use",
   "bar_example": "Live",
   "setting_mirror": "Mirror the picture",

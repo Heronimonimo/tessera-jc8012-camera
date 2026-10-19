@@ -1,5 +1,9 @@
 # JC8012-camera
 
+> **Gaat naar Schermcamera.** De camera-ondersteuning van deze plugin voor de Guition ESP32-P4-schermen, met
+> lichtniveau en beweging, wordt toegevoegd aan Tessera's eigen plugin **Schermcamera**. Zodra die uit is, haal je
+> JC8012-camera van je scherm en zet je Schermcamera ervoor in de plaats. Deze plugin en zijn repository verdwijnen dan.
+
 Bekijk de ingebouwde camera van de Guition JC8012P4A1 v3 (het 10,1-inch scherm) in Home Assistant. Het scherm wordt daar
 een camera van zijn apparaat: een beeld op een dashboard, een stream als je het opent, en alles wat Home Assistant met
 een camera doet (een momentopname in een automatisering, een opname).

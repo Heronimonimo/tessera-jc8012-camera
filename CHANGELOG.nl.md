@@ -1,5 +1,11 @@
 # Wijzigingen
 
+## 0.3.3 - 2026-10-19
+- **Deze plugin gaat op in Tessera's eigen plugin Schermcamera.** De camera van de Guition ESP32-P4-schermen,
+  lichtniveau en beweging worden daar toegevoegd, en de borden noemen hun camera dan in Tessera zelf. Zodra dat uit is,
+  haal je JC8012-camera van je scherm en zet je Schermcamera ervoor in de plaats; de instellingen zijn grotendeels gelijk.
+  Daarna verdwijnen deze plugin en zijn repository. Met deze update verandert er niets op je scherm.
+
 ## 0.3.2 - 2026-10-19
 - Een lamp aan- of uitzetten telt niet meer als beweging. Drie seconden na een lichtverandering, terwijl de camera zich
   aanpast, wordt beweging niet beoordeeld.

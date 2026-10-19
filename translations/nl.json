@@ -9,7 +9,7 @@
  },
  "app": {
   "name": "JC8012-camera",
-  "summary": "De ingebouwde camera van de JC8012P4A1 v3 in Home Assistant, met lichtniveau en beweging, bepaald op het scherm.",
+  "summary": "Gaat op in Tessera's Schermcamera: tot dan de camera, lichtniveau en beweging van de JC8012P4A1 v3.",
   "bar_watching": "Camera in gebruik",
   "bar_example": "Live",
   "setting_mirror": "Beeld spiegelen",

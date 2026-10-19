@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.3 - 2026-10-19
+- **This plugin is moving into Tessera's own Screen camera plugin.** The camera of the Guition ESP32-P4 screens, light
+  level and motion are being added there, and the boards will name their camera in Tessera itself. Once that is
+  released, remove JC8012 camera from your screen and add Screen camera in its place; its settings are much the same.
+  After that, this plugin and its repository go away. Nothing changes on your screen with this update.
+
 ## 0.3.2 - 2026-10-19
 - Switching a light on or off is no longer seen as motion. For three seconds after a light change, while the camera
   adjusts, motion is not judged.

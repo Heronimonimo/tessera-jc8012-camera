@@ -1,5 +1,9 @@
 # JC8012 camera
 
+> **Moving to Screen camera.** This plugin's camera support for the Guition ESP32-P4 screens, with light level and
+> motion, is being added to Tessera's own **Screen camera** plugin. Once that is released, remove JC8012 camera from
+> your screen and add Screen camera instead. This plugin and its repository then go away.
+
 See the built-in camera of the Guition JC8012P4A1 v3 (the 10.1-inch screen) in Home Assistant. The screen becomes a
 camera of its device there: a picture on a dashboard, a stream when you open it, and anything Home Assistant does with a
 camera (a snapshot in an automation, a recording).
