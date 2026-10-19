@@ -22,6 +22,7 @@ AUTO_LOAD = ["sensor", "binary_sensor"]
 
 CONF_CAMERA = "camera"
 CONF_STATUS = "status"
+CONF_ACTIVITY = "activity"
 CONF_ILLUMINANCE = "illuminance"
 CONF_MOTION = "motion"
 
@@ -35,6 +36,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.GenerateID(): cv.declare_id(JC8012Camera),
         cv.Required(CONF_CAMERA): cv.use_id(Camera),
         cv.Optional(CONF_STATUS): cv.use_id(text_sensor.TextSensor),
+        cv.Optional(CONF_ACTIVITY): cv.use_id(text_sensor.TextSensor),
         cv.Optional(CONF_ILLUMINANCE): sensor.sensor_schema(
             unit_of_measurement=UNIT_LUX,
             accuracy_decimals=1,
@@ -56,6 +58,8 @@ async def to_code(config):
         # The camera starts in setup(), before this component's own; listening from here hears it.
         logger.request_log_listener()
         cg.add(var.listen_to_log())
+    if CONF_ACTIVITY in config:
+        cg.add(var.set_activity(await cg.get_variable(config[CONF_ACTIVITY])))
     if CONF_ILLUMINANCE in config:
         cg.add(var.set_illuminance(await sensor.new_sensor(config[CONF_ILLUMINANCE])))
     if CONF_MOTION in config:

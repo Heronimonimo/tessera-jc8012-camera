@@ -1,5 +1,11 @@
 # Wijzigingen
 
+## 0.3.1 - 2026-10-19
+- Het beeld is standaard geen spiegelbeeld meer: links is links, zoals een camera aan de muur het hoort te tonen. Had je
+  **Beeld spiegelen** aangezet om dat te verhelpen, zet het dan weer uit.
+- Nieuw: **Camera activity** bij het apparaat van het scherm in Home Assistant: Live, Picture, Sensing, Idle of Failed,
+  zoals de bovenbalk het laat zien.
+
 ## 0.3.0 - 2026-10-19
 - Nieuw: **Light level** (lux, een schatting) en **Motion** bij het apparaat van het scherm in Home Assistant, bepaald
   door de camera op het scherm zelf: hiervoor gaat geen beeld van het scherm af. Gebruik het lichtniveau om het scherm

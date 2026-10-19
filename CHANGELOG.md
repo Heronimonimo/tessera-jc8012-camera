@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 - 2026-10-19
+- The picture is no longer a mirror image by default: left is left, as a camera on the wall should show it. If you had
+  switched **Mirror the picture** on to correct it, switch it off again.
+- New: **Camera activity** on the screen's device in Home Assistant: Live, Picture, Sensing, Idle or Failed, as the top
+  bar shows it.
+
 ## 0.3.0 - 2026-10-19
 - New: **Light level** (lux, an estimate) and **Motion** on the screen's device in Home Assistant, worked out from the
   camera on the screen itself: no picture leaves the screen for them. Use the light level to dim the screen in the

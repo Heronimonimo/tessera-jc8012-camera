@@ -85,6 +85,7 @@ void JC8012Camera::setup() {
   set_up_ = true;
   apply_sensing_();
   publish_status_();
+  publish_activity_();
 }
 
 void JC8012Camera::set_sensing(bool on) {
@@ -116,6 +117,7 @@ void JC8012Camera::apply_sensing_() {
   }
   sensing_on_ = on;
   publish_sensing_();
+  publish_activity_();
   tessera::refresh();
 }
 
@@ -313,6 +315,22 @@ void JC8012Camera::publish_status_() {
 #endif
 }
 
+// What the camera does now, as the top bar shows it (GitHub issue #1): a stream (Live), a picture now and then
+// (Picture), light and motion only (Sensing), nothing (Idle), or Failed.
+void JC8012Camera::publish_activity_() {
+#ifdef USE_TEXT_SENSOR
+  if (activity_ == nullptr || camera_ == nullptr) return;
+  const char *activity = camera_->is_failed() ? "Failed"
+                         : live()             ? "Live"
+                         : watching()         ? "Picture"
+                         : sensing_on_        ? "Sensing"
+                                              : "Idle";
+  if (activity == shown_activity_) return;
+  shown_activity_ = activity;
+  activity_->publish_state(activity);
+#endif
+}
+
 bool JC8012Camera::watching() const {
   return last_picture_ != 0 && millis() - last_picture_ < PICTURE_SHOWN_MS;
 }
@@ -330,6 +348,7 @@ void JC8012Camera::on_camera_image(const std::shared_ptr<camera::CameraImage> &i
     shown_ = true;
     tessera::refresh();
   }
+  publish_activity_();
 }
 
 void JC8012Camera::on_stream_start() {
@@ -338,6 +357,7 @@ void JC8012Camera::on_stream_start() {
   }
   streaming_ = true;
   last_stream_ = millis();
+  publish_activity_();
 }
 
 void JC8012Camera::on_stream_stop() {
@@ -346,6 +366,7 @@ void JC8012Camera::on_stream_stop() {
   }
   streaming_ = false;
   tessera::refresh();
+  publish_activity_();
 }
 
 void JC8012Camera::on_interval(uint32_t now_ms) {
@@ -362,6 +383,7 @@ void JC8012Camera::on_interval(uint32_t now_ms) {
   }
   publish_status_();
   publish_sensing_();
+  publish_activity_();
 }
 
 }  // namespace esphome::jc8012_camera

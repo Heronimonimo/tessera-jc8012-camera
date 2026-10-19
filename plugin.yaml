@@ -73,11 +73,18 @@ text_sensor:
     icon: mdi:cctv
     entity_category: diagnostic
     update_interval: never
+  # What the camera does now, as the top bar shows it: Live, Picture, Sensing, Idle or Failed.
+  - platform: template
+    id: jc8012_camera_activity
+    name: "Camera activity"
+    icon: mdi:cctv
+    update_interval: never
 
 jc8012_camera:
   id: jc8012_camera_plugin
   camera: ts_camera
   status: jc8012_camera_status
+  activity: jc8012_camera_activity
   illuminance:
     name: "Light level"
   motion:

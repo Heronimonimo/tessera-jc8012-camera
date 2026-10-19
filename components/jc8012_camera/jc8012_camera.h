@@ -41,6 +41,7 @@ class JC8012Camera : public Component,
   void set_camera(camera::Camera *c) { camera_ = c; }
 #ifdef USE_TEXT_SENSOR
   void set_status(text_sensor::TextSensor *s) { status_ = s; }
+  void set_activity(text_sensor::TextSensor *s) { activity_ = s; }
 #endif
 #ifdef USE_SENSOR
   void set_illuminance(sensor::Sensor *s) { illuminance_ = s; }
@@ -72,6 +73,7 @@ class JC8012Camera : public Component,
   void on_log_(uint8_t level, const char *tag, const char *message, size_t length);
   void keep_line_(const char *message, size_t length);
   void publish_status_();
+  void publish_activity_();
   void apply_sensing_();
   void publish_sensing_();
 
@@ -82,6 +84,8 @@ class JC8012Camera : public Component,
   camera::Camera *camera_{};
 #ifdef USE_TEXT_SENSOR
   text_sensor::TextSensor *status_{};
+  text_sensor::TextSensor *activity_{};   // what the camera does now: Live, Picture, Sensing, Idle or Failed
+  const char *shown_activity_{nullptr};
 #endif
 #ifdef USE_SENSOR
   sensor::Sensor *illuminance_{};

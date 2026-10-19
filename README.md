@@ -41,6 +41,8 @@ screen in the evening, switch a light when someone comes in, and wake the screen
 - **Light level** is an estimate in lux from the picture's brightness, the exposure time and the sensor's gain. It is
   right in proportion (twice the light reads about twice the lux), not exact: pick the thresholds for your automations
   by looking at what it reads in your room. It updates every ten seconds, and at once when a light goes on or off.
+- **Camera activity** says what the camera does now: Live (a stream), Picture (a picture now and then), Sensing
+  (light and motion only), Idle or Failed.
 - **Motion** compares the picture in a coarse grid twice a second and turns on when part of it changes, for at least ten
   seconds. A change of the whole picture (a light switched on, the camera adjusting its exposure) is not motion.
 - While this is on the camera runs all the time, at two frames a second. No picture is encoded or sent for it: only the

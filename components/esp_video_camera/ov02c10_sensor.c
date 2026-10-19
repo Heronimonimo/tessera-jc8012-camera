@@ -13,9 +13,11 @@
  * exposure; mirror and flip as the Linux driver sets them, keeping the Bayer order; the OV5640 auto-exposure and banding
  * registers the earlier copy wrote are gone; a sensor with another chip id is no longer taken for an OV02C10.
  * 0.2.2: flip moves the picture up a row where the window has no row to spare below (1288x728).
+ * 0.3.1: the true view (0x3820 bit 3 set, as Linux) by default; mirror is the mirror image.
  */
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
@@ -363,9 +365,10 @@ static uint8_t ov02c10_shift_window(uint8_t offset, int preferred, uint16_t room
     return (uint8_t)moved;
 }
 
-// Mirror and flip relative to how the format's table reads the sensor out. Each toggles its bit in 0x3820 and moves the
-// window one pixel, the way Linux pairs them: bit 3 set with the X offset one lower, bit 4 set with the Y offset one
-// higher (or the other way where the window has no room, ov02c10_shift_window).
+// Mirror and flip. Each toggles its bit in 0x3820 and moves the window one pixel, the way Linux pairs them: bit 3 set
+// with the X offset one lower, bit 4 set with the Y offset one higher (or the other way where the window has no room,
+// ov02c10_shift_window). Bit 3 set is the true view, as Linux has it; the tables leave it clear, which is a mirror image
+// (GitHub issue #1), so mirror off sets it. Flip is relative to the table, whose bit 4 clear is upright.
 static esp_err_t ov02c10_apply_orientation(esp_cam_sensor_device_t *dev)
 {
     ov02c10_state_t *state = (ov02c10_state_t *)dev->priv;
@@ -373,7 +376,8 @@ static esp_err_t ov02c10_apply_orientation(esp_cam_sensor_device_t *dev)
     uint8_t x_win = state->base_x_win;
     uint8_t y_win = state->base_y_win;
 
-    if (state->hmirror) {
+    const bool true_view_bit = !state->hmirror;
+    if (((rotate & OV02C10_ROTATE_MIRROR) != 0) != true_view_bit) {
         rotate ^= OV02C10_ROTATE_MIRROR;
         x_win = ov02c10_shift_window(x_win, (rotate & OV02C10_ROTATE_MIRROR) ? -1 : 1, state->room_x);
     }
