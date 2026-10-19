@@ -1,0 +1,19 @@
+# JC8012P4A1 v3 camera. The OV02C10 SCCB lines share Tessera's existing touch_bus.
+# The module supplies its own clock and exposes no reset or power-down GPIO in the board schematic.
+
+# The sensor through the ESP32-P4's camera interface, image processor and hardware JPEG encoder (Espressif's esp_video).
+# Pictures are made only while Home Assistant asks for them, at most five a second; the pipeline rests five seconds
+# after the last one.
+esp_video_camera:
+  id: ts_camera
+  name: "JC8012 camera"
+  i2c_id: touch_bus
+  enable_xclk: false
+  xclk_pin: -1
+  device: jpeg
+  resolution: 1288x728
+  jpeg_quality: 12
+  max_framerate: 2
+
+jc8012_camera:
+  camera: ts_camera
