@@ -21,7 +21,7 @@ De camera geeft het scherm ook een **lichtniveau** en een **bewegingssensor**, b
 
 ## Instellen
 
-1. Open in Tessera **Plugins**, kies **Toevoegen met een link** en plak
+1. Open in Tessera **Plugins** en kies **JC8012-camera**, of kies **Toevoegen met een link** en plak
    `https://github.com/Heronimonimo/tessera-jc8012-camera`.
 2. Kies **JC8012-camera** en vink je JC8012P4A1 v3 aan. Het scherm bouwt één keer opnieuw, dat duurt even.
 3. Open in Home Assistant het apparaat van het scherm (Instellingen, Apparaten): de camera staat er als **Camera**. Zet
@@ -30,17 +30,23 @@ De camera geeft het scherm ook een **lichtniveau** en een **bewegingssensor**, b
    instellingen van de plugin op het tabblad Plugins van het scherm in Tessera (of de schakelaars **Camera mirror** en
    **Camera flip** bij het apparaat in Home Assistant). Het volgende beeld komt gedraaid binnen.
 5. Optioneel: zet **Camera in gebruik** in de bovenbalk van een pagina (Bovenbalk, Toevoegen, Uit plugins). Hij staat er
-   zolang er beelden van het scherm gaan: "Live" bij een stream, "Camera" bij af en toe een beeld.
+   zolang er beelden van het scherm gaan: "Live" bij een stream, "Camera" bij af en toe een beeld. **Camera ziet
+   beweging** toont een oog zolang de camera licht en beweging meet.
+6. **Light level** en **Motion** staan bij het apparaat van het scherm in Home Assistant. Beweging wekt het scherm uit
+   stand-by; zet **Scherm wekken bij beweging** uit bij de instellingen van de plugin als je dat niet wilt, of
+   **Lichtniveau en beweging** om beide te stoppen.
 
 ## Lichtniveau en beweging
 
 - **Light level** is een schatting in lux uit de helderheid van het beeld, de belichtingstijd en de versterking van de
   sensor. Hij klopt in verhouding (twee keer zoveel licht is ongeveer twee keer zoveel lux), niet precies: kies de
-  drempels van je automatiseringen door te kijken wat hij in jouw kamer meet.
+  drempels van je automatiseringen door te kijken wat hij in jouw kamer meet. Hij wordt elke tien seconden bijgewerkt,
+  en meteen als er een lamp aan- of uitgaat.
+- **Camera activity** zegt wat de camera nu doet: Live (een stream), Picture (af en toe een beeld), Sensing (alleen
+  licht en beweging), Idle of Failed.
 - **Motion** vergelijkt het beeld twee keer per seconde in een grof raster en gaat aan als een deel ervan verandert,
   minstens tien seconden. Een verandering van het hele beeld (een lamp die aangaat, de camera die zijn belichting
-  aanpast) is geen beweging. Beweging wekt het scherm uit stand-by; zet **Scherm wekken bij beweging** uit als je dat niet
-  wilt, of **Lichtniveau en beweging** om beide te stoppen.
+  aanpast) is geen beweging.
 - Zolang dit aan staat draait de camera steeds, twee beelden per seconde. Er wordt hiervoor geen beeld gemaakt of
   verstuurd: alleen de twee waarden gaan van het scherm af.
 

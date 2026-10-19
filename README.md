@@ -21,7 +21,7 @@ screen in the evening, switch a light when someone comes in, and wake the screen
 
 ## Set up
 
-1. In Tessera, open **Plugins**, choose **Add with a link** and paste
+1. In Tessera, open **Plugins** and choose **JC8012 camera**, or choose **Add with a link** and paste
    `https://github.com/Heronimonimo/tessera-jc8012-camera`.
 2. Choose **JC8012 camera** and tick your JC8012P4A1 v3 screen. The screen builds once with it, which takes a while.
 3. In Home Assistant, open the screen's device (Settings, Devices): its camera is there as **Camera**. Put it on a
