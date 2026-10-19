@@ -1,0 +1,66 @@
+# Temporary: builds Tessera's Screen camera with the OV02C10 (Heronimonimo/tessera-plugins, screen-camera-ov02c10)
+# against the Guition boards that name camera_sensor (Heronimonimo/homeassistant_espscreen, guition-ov02c10-camera),
+# and the reTerminal D1001 to show its SC202CS still builds. For the pull requests on MaxGramser's repositories.
+name: screen-camera-guition
+
+on:
+  push:
+    branches: [ci/screen-camera-guition]
+  workflow_dispatch:
+
+jobs:
+  firmware:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        board: [jc8012p4a1v3, jc4880p443, reterminald1001]
+    steps:
+      - uses: actions/checkout@v4
+        with: { repository: Heronimonimo/homeassistant_espscreen, ref: guition-ov02c10-camera, path: tessera }
+      - uses: actions/checkout@v4
+        with: { repository: Heronimonimo/tessera-plugins, ref: screen-camera-ov02c10, path: plugins }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - run: python -m pip install "esphome==2026.9.0" pyyaml
+      - run: python plugins/tools/check.py plugins/plugins/screen_camera
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/esphome
+          key: esphome-screen-camera-${{ matrix.board }}-2026.9.0
+          restore-keys: esphome-2026.9.0
+      - name: Screen with Screen camera
+        working-directory: tessera/checkout
+        run: |
+          cat > secrets.yaml <<EOF
+          wifi_ssid: "ci"
+          wifi_password: "ci-password"
+          api_encryption_key: "$(head -c 32 /dev/urandom | base64)"
+          ota_password: "ci-ota"
+          ap_password: "ci-ap-password"
+          EOF
+          cat > ci-camera.yaml <<EOF
+          packages:
+            screen: !include ${{ matrix.board }}.yaml
+            plugin_screen_camera: !include ../../plugins/plugins/screen_camera/plugin.yaml
+          external_components:
+            - source: { type: local, path: ../../plugins/plugins/screen_camera/components }
+          EOF
+      - name: esphome compile
+        working-directory: tessera/checkout
+        run: esphome compile ci-camera.yaml
+      - name: What only the build shows
+        working-directory: tessera/checkout
+        run: |
+          build=$(ls -d .esphome/build/*/ | head -1)
+          map=$(find "$build" -name '*.map' | head -1)
+          ipa=$(find "$build/build" -name 'esp_video_ipa_config.c' | head -1)
+          echo "IPA configuration: $ipa"; grep -o '"[A-Z0-9]*"' "$ipa" | sort -u
+          grep -q '"OV02C10"' "$ipa" || { echo "::error::no OV02C10 tuning"; exit 1; }
+          grep -q 'CONFIG_ESP32P4_SELECTS_REV_LESS_V3=y' "$build/sdkconfig."* && echo "pre-v3 chip: eco4 tuning expected" || echo "rev3 chip: eco5 tuning expected"
+          grep -c 's_ipa_acc_blc_OV02C10' "$ipa" || true
+          echo "Detect entries linked:"
+          grep -E '^\s*\.esp_cam_sensor_detect_fn' -A1 "$map" | grep -oE '[a-z0-9_]+\.c\.obj|lib[a-z0-9_]+\.a\([a-z0-9_]+\.c\.obj\)' | sort -u
+          grep -E '^\s*\.esp_cam_sensor_detect_fn' -A1 "$map" | grep -q 'ov02c10_sensor' \
+            || { echo "::error::the OV02C10 detect entry is not in the firmware"; exit 1; }
