@@ -1,5 +1,9 @@
 # Wijzigingen
 
+## 0.2.2 - 2026-10-19
+- Opgelost: **Beeld ondersteboven draaien** liet de camera stoppen (het beeld schoof één rij over de rand van de sensor).
+  Na de update werkt de camera met de instelling aan en uit.
+
 ## 0.2.1 - 2026-10-19
 - Nieuw: **Camera status** bij het apparaat van het scherm in Home Assistant (onder Diagnose). Hij zegt of de camera
   werkt, en zo niet, wat de camera meldde terwijl het scherm opstartte. Stuur hem mee als je een probleem meldt.

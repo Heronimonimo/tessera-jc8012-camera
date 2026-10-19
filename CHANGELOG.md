@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 - 2026-10-19
+- Fixed: **Turn the picture upside down** stopped the camera (the picture was moved one row past the sensor's edge).
+  After the update the camera works with it on or off.
+
 ## 0.2.1 - 2026-10-19
 - New: **Camera status** on the screen's device in Home Assistant (under Diagnostic). It says whether the camera works,
   and when it does not, what the camera reported while the screen started. Please send it along when you report a

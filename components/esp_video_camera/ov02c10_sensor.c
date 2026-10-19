@@ -12,6 +12,7 @@
  * (0x3501, 0x3508, as the Linux driver drivers/media/i2c/ov02c10.c writes them), so esp_video's ISP pipeline runs auto
  * exposure; mirror and flip as the Linux driver sets them, keeping the Bayer order; the OV5640 auto-exposure and banding
  * registers the earlier copy wrote are gone; a sensor with another chip id is no longer taken for an OV02C10.
+ * 0.2.2: flip moves the picture up a row where the window has no row to spare below (1288x728).
  */
 
 #include <inttypes.h>
@@ -81,6 +82,9 @@ typedef struct {
     uint8_t base_rotate;
     uint8_t base_x_win;
     uint8_t base_y_win;
+    // How far the picture may move inside the sensor's window: window size less picture size.
+    uint16_t room_x;
+    uint16_t room_y;
 } ov02c10_state_t;
 
 // Total gain x 1000 for each analog gain step, the menu esp_video's ISP pipeline picks from.
@@ -324,9 +328,28 @@ static esp_err_t ov02c10_set_gain_index(esp_cam_sensor_device_t *dev, uint32_t i
     return ret;
 }
 
+// A 16-bit value a table writes to two registers (high byte first).
+static uint16_t ov02c10_table_value16(const ov02c10_reginfo_t *regarray, uint16_t reg)
+{
+    return (ov02c10_table_value(regarray, reg, 0) << 8) | ov02c10_table_value(regarray, reg + 1, 0);
+}
+
+// The picture's offset one pixel further, to keep the Bayer order after a mirror or flip: what counts is that the offset
+// changes between even and odd. Linux moves it the way `preferred` says; where the window has no room on that side (the
+// 1288x728 table leaves no spare row below), it moves the other way. A picture past the window's edge is a line short,
+// and the camera interface then waits for a frame that never ends.
+static uint8_t ov02c10_shift_window(uint8_t offset, int preferred, uint16_t room)
+{
+    int moved = offset + preferred;
+    if (moved < 0 || moved > room) {
+        moved = offset - preferred;
+    }
+    return (uint8_t)moved;
+}
+
 // Mirror and flip relative to how the format's table reads the sensor out. Each toggles its bit in 0x3820 and moves the
 // window one pixel, the way Linux pairs them: bit 3 set with the X offset one lower, bit 4 set with the Y offset one
-// higher.
+// higher (or the other way where the window has no room, ov02c10_shift_window).
 static esp_err_t ov02c10_apply_orientation(esp_cam_sensor_device_t *dev)
 {
     ov02c10_state_t *state = (ov02c10_state_t *)dev->priv;
@@ -336,11 +359,11 @@ static esp_err_t ov02c10_apply_orientation(esp_cam_sensor_device_t *dev)
 
     if (state->hmirror) {
         rotate ^= OV02C10_ROTATE_MIRROR;
-        x_win += (rotate & OV02C10_ROTATE_MIRROR) ? -1 : 1;
+        x_win = ov02c10_shift_window(x_win, (rotate & OV02C10_ROTATE_MIRROR) ? -1 : 1, state->room_x);
     }
     if (state->vflip) {
         rotate ^= OV02C10_ROTATE_FLIP;
-        y_win += (rotate & OV02C10_ROTATE_FLIP) ? 1 : -1;
+        y_win = ov02c10_shift_window(y_win, (rotate & OV02C10_ROTATE_FLIP) ? 1 : -1, state->room_y);
     }
 
     esp_err_t ret = ov02c10_write(dev->sccb_handle, OV02C10_REG_ROTATE, rotate);
@@ -478,6 +501,11 @@ static esp_err_t ov02c10_set_format(esp_cam_sensor_device_t *dev, const esp_cam_
     state->base_rotate = ov02c10_table_value(regs, OV02C10_REG_ROTATE, 0xa0);
     state->base_x_win = ov02c10_table_value(regs, OV02C10_REG_X_WIN_L, 0x07);
     state->base_y_win = ov02c10_table_value(regs, OV02C10_REG_Y_WIN_L, 0x04);
+    // Window 0x3800..0x3807 (start and end, inclusive), picture 0x3808..0x380b.
+    int window_w = ov02c10_table_value16(regs, 0x3804) - ov02c10_table_value16(regs, 0x3800) + 1;
+    int window_h = ov02c10_table_value16(regs, 0x3806) - ov02c10_table_value16(regs, 0x3802) + 1;
+    state->room_x = (uint16_t)MAX(window_w - (int)format->width, 0);
+    state->room_y = (uint16_t)MAX(window_h - (int)format->height, 0);
     ret = ov02c10_set_exposure(dev, format->isp_info->isp_v1_info.exp_def);
     ret |= ov02c10_set_gain_index(dev, format->isp_info->isp_v1_info.gain_def);
     ret |= ov02c10_apply_orientation(dev);
