@@ -1,0 +1,63 @@
+# Temporary: builds Tessera's Screen camera with the SC202CS black level (Heronimonimo/tessera-plugins,
+# screen-camera-tab5-tuning) for the two boards with that sensor, on Tessera's dev. For the pull request on
+# MaxGramser/tessera-plugins.
+name: screen-camera-sc202cs
+
+on:
+  push:
+    branches: [ci/screen-camera-sc202cs]
+  workflow_dispatch:
+
+jobs:
+  firmware:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        board: [tab5, reterminald1001]
+    steps:
+      - uses: actions/checkout@v4
+        with: { repository: MaxGramser/homeassistant_espscreen, ref: dev, path: tessera }
+      - uses: actions/checkout@v4
+        with: { repository: Heronimonimo/tessera-plugins, ref: screen-camera-tab5-tuning, path: plugins }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - run: python -m pip install "esphome==2026.9.0" pyyaml
+      - run: python plugins/tools/check.py plugins/plugins/screen_camera
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/esphome
+          key: esphome-screen-camera-${{ matrix.board }}-2026.9.0
+          restore-keys: esphome-2026.9.0
+      - name: Screen with Screen camera
+        working-directory: tessera/checkout
+        run: |
+          cat > secrets.yaml <<EOS
+          wifi_ssid: "ci"
+          wifi_password: "ci-password"
+          api_encryption_key: "$(head -c 32 /dev/urandom | base64)"
+          ota_password: "ci-ota"
+          ap_password: "ci-ap-password"
+          EOS
+          cat > ci-camera.yaml <<EOS
+          packages:
+            screen: !include ${{ matrix.board }}.yaml
+            plugin_screen_camera: !include ../../plugins/plugins/screen_camera/plugin.yaml
+          external_components:
+            - source: { type: local, path: ../../plugins/plugins/screen_camera/components }
+          EOS
+      - name: esphome compile
+        working-directory: tessera/checkout
+        run: esphome compile ci-camera.yaml
+      - name: What only the build shows
+        working-directory: tessera/checkout
+        run: |
+          build=$(ls -d .esphome/build/*/ | head -1)
+          map="$build/build/$(basename "$build").map"
+          test -f "$map"
+          grep -q 'CONFIG_ESP32P4_SELECTS_REV_LESS_V3=y' "$build/sdkconfig."* && echo "pre-v3 chip" || echo "rev3 chip"
+          grep -E 'sc202cs\.cpp\.o' "$map" | head -3
+          grep -q 'esphome::sc202cs::SC202CS::setup' "$map" || grep -q '_ZN7esphome7sc202cs7SC202CS5setupEv' "$map" \
+            || { echo "::error::the SC202CS black level is not in the firmware"; exit 1; }
+          grep -o 'sc202cs[a-z_]*\.c\.obj' "$map" | sort -u
