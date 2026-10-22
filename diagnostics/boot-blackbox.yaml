@@ -179,6 +179,40 @@ switch:
       - lambda: |-
           const uint8_t w[2] = {0x02, 0x08};
           id(touch_bus)->write_readv(0x18, w, 2, nullptr, 0);
+  # Who holds GPIO11 high? On: the P4's pull-up off and its pull-down on. A line nothing drives then reads low in
+  # Diag I2S pins; a line the codec (or anything else) drives stays high. Off: back to the pull-up.
+  - platform: template
+    id: diag_gpio11_pulldown
+    name: "Diag GPIO11 pull-down"
+    icon: mdi:arrow-collapse-down
+    entity_category: diagnostic
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - lambda: |-
+          gpio_pullup_dis(GPIO_NUM_11);
+          gpio_pulldown_en(GPIO_NUM_11);
+    turn_off_action:
+      - lambda: |-
+          gpio_pulldown_dis(GPIO_NUM_11);
+          gpio_pullup_en(GPIO_NUM_11);
+  # Is it the codec? On: the ADC's digital volume (register 0x17) at 0x00, which mutes it, so a codec that drives the
+  # line sends 0 and it reads low. Off: back to ESPHome's 0xC8.
+  - platform: template
+    id: diag_es8311_adc_mute
+    name: "Diag ES8311 ADC mute"
+    icon: mdi:microphone-off
+    entity_category: diagnostic
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - lambda: |-
+          const uint8_t w[2] = {0x17, 0x00};
+          id(touch_bus)->write_readv(0x18, w, 2, nullptr, 0);
+    turn_off_action:
+      - lambda: |-
+          const uint8_t w[2] = {0x17, 0xC8};
+          id(touch_bus)->write_readv(0x18, w, 2, nullptr, 0);
 
 api:
   # Whenever a log viewer or Home Assistant connects: what the previous boot left, into this boot's log.
@@ -319,6 +353,34 @@ text_sensor:
         s += cell;
       }
       return s.empty() ? std::string("no pin changed") : s.substr(0, 250);
+  # How the P4 has GPIO11 set up, from ESP-IDF's own dump: pull-up/down, input and output enable, open drain, IO MUX
+  # function, and in the GPIO matrix which peripheral signal reads it (the I2S data in) and which drives it.
+  - platform: template
+    name: "Diag GPIO11 config"
+    icon: mdi:chip
+    entity_category: diagnostic
+    update_interval: 30s
+    lambda: |-
+      char buf[512] = {0};
+      FILE *f = fmemopen(buf, sizeof(buf) - 1, "w");
+      if (f == nullptr)
+        return std::string("fmemopen failed");
+      gpio_dump_io_configuration(f, 1ULL << 11);
+      fclose(f);
+      std::string s;
+      bool space = false;
+      for (const char *p = buf; *p; p++) {  // one line: newlines and runs of spaces become one space
+        char ch = (*p == '\n' || *p == '\r' || *p == '\t') ? ' ' : *p;
+        if (ch == ' ') {
+          if (!space && !s.empty())
+            s += ' ';
+          space = true;
+        } else {
+          s += ch;
+          space = false;
+        }
+      }
+      return s.substr(0, 250);
   # The ES8311's clock dividers and serial port timing (0x02 to 0x08, 0x0B, 0x0C): its ADC only runs with these right.
   - platform: template
     name: "Diag ES8311 clocks"
