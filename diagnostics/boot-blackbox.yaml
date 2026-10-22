@@ -265,6 +265,59 @@ text_sensor:
         s += cell;
       }
       return s;
+  # Every pin of the P4 that changes while it is watched: pin=changes/highs out of 4000 reads. Looking for the codec's
+  # data on a pin other than GPIO11. Only the input buffer is switched on, nothing a pin drives changes. The clocks
+  # (10, 12, 13), the backlight's PWM and the touch bus change as well.
+  - platform: template
+    name: "Diag pin scan"
+    icon: mdi:magnify-scan
+    entity_category: diagnostic
+    update_interval: 30s
+    lambda: |-
+      static constexpr int N = 55;
+      static constexpr int READS = 4000;
+      uint16_t changes[N] = {0}, highs[N] = {0};
+      uint8_t last[N];
+      for (int p = 0; p < N; p++) {
+        gpio_input_enable((gpio_num_t) p);
+        last[p] = gpio_get_level((gpio_num_t) p);
+      }
+      for (int i = 0; i < READS; i++) {
+        for (int p = 0; p < N; p++) {
+          uint8_t v = gpio_get_level((gpio_num_t) p);
+          highs[p] += v;
+          changes[p] += (v != last[p]);
+          last[p] = v;
+        }
+      }
+      std::string s;
+      for (int p = 0; p < N; p++) {
+        if (changes[p] == 0)
+          continue;
+        char cell[24];
+        snprintf(cell, sizeof(cell), "%s%d=%u/%u", s.empty() ? "" : " ", p, (unsigned) changes[p], (unsigned) highs[p]);
+        s += cell;
+      }
+      return s.empty() ? std::string("no pin changed") : s.substr(0, 250);
+  # The ES8311's clock dividers and serial port timing (0x02 to 0x08, 0x0B, 0x0C): its ADC only runs with these right.
+  - platform: template
+    name: "Diag ES8311 clocks"
+    icon: mdi:clock-outline
+    entity_category: diagnostic
+    update_interval: 30s
+    lambda: |-
+      static const uint8_t regs[] = {0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x0B, 0x0C, 0x31, 0x32, 0x37};
+      std::string s = "regs";
+      for (uint8_t r : regs) {
+        uint8_t v = 0;
+        char cell[12];
+        if (id(touch_bus)->write_readv(0x18, &r, 1, &v, 1) == i2c::ERROR_OK)
+          snprintf(cell, sizeof(cell), " %02X=%02X", r, v);
+        else
+          snprintf(cell, sizeof(cell), " %02X=--", r);
+        s += cell;
+      }
+      return s;
 
 sensor:
   # Listens beside whatever else uses the microphone (passive): it never starts or stops it.
