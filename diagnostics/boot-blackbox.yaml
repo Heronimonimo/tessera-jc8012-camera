@@ -139,6 +139,8 @@ esphome:
         - lambda: |-
             const uint8_t w[2] = {0x44, (uint8_t) (id(diag_es8311_44).state ? 0x08 : 0x00)};
             id(touch_bus)->write_readv(0x18, w, 2, nullptr, 0);
+            const uint8_t c[2] = {0x02, (uint8_t) (id(diag_es8311_clock).state ? 0x00 : 0x08)};
+            id(touch_bus)->write_readv(0x18, c, 2, nullptr, 0);
 
 # The test: register 0x44 = 0x08, as Espressif's own ES8311 driver (esp_codec_dev) and HomeTiles set it when the codec's
 # ADC records, "ADC data on both slots". ESPHome's es8311 never writes 0x44 and leaves it at 0x00. Turn it on and off
@@ -158,6 +160,24 @@ switch:
     turn_off_action:
       - lambda: |-
           const uint8_t w[2] = {0x44, 0x00};
+          id(touch_bus)->write_readv(0x18, w, 2, nullptr, 0);
+  # The clock fix: ESPHome 2026.9.0's es8311 writes the clock multiplier's factor into register 0x02 instead of its
+  # code, so at MCLK 4.096 MHz and 16 kHz it writes 0x08 (x2) where the codec wants 0x00 (x1) and runs its clocks at
+  # twice the rate (fixed in ESPHome 2026.10.0, esphome/esphome#20121). On: 0x00, Espressif's value. Off: ESPHome's 0x08.
+  - platform: template
+    id: diag_es8311_clock
+    name: "Diag ES8311 clock fix"
+    icon: mdi:clock-check-outline
+    entity_category: diagnostic
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    turn_on_action:
+      - lambda: |-
+          const uint8_t w[2] = {0x02, 0x00};
+          id(touch_bus)->write_readv(0x18, w, 2, nullptr, 0);
+    turn_off_action:
+      - lambda: |-
+          const uint8_t w[2] = {0x02, 0x08};
           id(touch_bus)->write_readv(0x18, w, 2, nullptr, 0);
 
 api:
