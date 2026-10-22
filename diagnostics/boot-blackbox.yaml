@@ -1,0 +1,221 @@
+# Boot black box and microphone check for a Tessera screen on an ESP32-P4 (written for the Guition JC8012P4A1 V3).
+# Paste it into the screen's Override YAML (Tessera: the screen → ··· → Override YAML), Save & check, Update firmware.
+# If your Override YAML already has one of these keys (globals:, esphome:, api:, sensor:, text_sensor:, button:), add
+# these entries under the key you already have; each key may appear only once.
+#
+# What it does:
+# - From the first moment of the boot it keeps the last 24 log lines, and ten times a second what the main loop is busy
+#   with and for how long, in memory that survives a watchdog restart or a crash (not a power cut).
+# - After the restart, once Wi-Fi and Home Assistant are up, it shows what it kept: the sensor "Diag previous boot", and
+#   the kept log lines in the screen's log (they are logged again whenever a log viewer or Home Assistant connects, and
+#   when you press "Diag replay previous boot").
+# - The microphone: its sound level (peak and RMS, dBFS: about -90 is silence or nothing, a room with talking is about
+#   -50 to -30), whether it runs or is muted, and the ES8311 codec's registers read back over I2C.
+# Remove it again when the problem is found: it costs about 3.5 KB of internal RAM and a small task.
+
+globals:
+  - id: diag_prev_report
+    type: std::string
+  - id: diag_prev_log
+    type: std::vector<std::string>
+
+esphome:
+  on_boot:
+    # Before every other part of the screen starts (the highest setup priority is 1000), so a hang while they start
+    # is in the record.
+    - priority: 2000
+      then:
+        - lambda: |-
+            static constexpr uint32_t MAGIC = 0xB1AC0B0Cu;
+            static constexpr uint32_t LINES = 24;
+            static constexpr uint32_t WIDTH = 116;
+            struct Line {
+              uint32_t ms;
+              char level;
+              char text[WIDTH];
+            };
+            struct Box {
+              uint32_t magic;
+              uint32_t boots;
+              uint32_t written;          // log lines written this boot; the ring holds the last LINES of them
+              Line lines[LINES];
+              uint32_t seen_ms;          // the sampler's last look, in ms since the start
+              uint32_t busy_ms;          // how long the main loop had been in its current step then
+              uint32_t setup_done;
+              uint32_t free_internal;    // free internal RAM then, and the lowest it was
+              uint32_t lowest_internal;
+              char component[32];        // the component the main loop ran then (after setup)
+            };
+            // .noinit: not cleared at a restart, only lost at a power cut (the magic tells the two apart).
+            static Box box __attribute__((section(".noinit")));
+
+            // What the previous boot left.
+            if (box.magic == MAGIC && box.written < 100000000u) {
+              box.component[sizeof(box.component) - 1] = 0;
+              char report[240];
+              if (box.setup_done) {
+                snprintf(report, sizeof(report),
+                         "boot %u, last seen %u.%u s after start, after setup; the main loop was %u ms in %s; "
+                         "free internal RAM %u KB (lowest %u KB)",
+                         (unsigned) box.boots, (unsigned) (box.seen_ms / 1000), (unsigned) (box.seen_ms % 1000 / 100),
+                         (unsigned) box.busy_ms, box.component[0] ? box.component : "?",
+                         (unsigned) (box.free_internal / 1024), (unsigned) (box.lowest_internal / 1024));
+              } else {
+                snprintf(report, sizeof(report),
+                         "boot %u, last seen %u.%u s after start, DURING SETUP; the current setup step had run %u ms "
+                         "(see the last log lines); free internal RAM %u KB (lowest %u KB)",
+                         (unsigned) box.boots, (unsigned) (box.seen_ms / 1000), (unsigned) (box.seen_ms % 1000 / 100),
+                         (unsigned) box.busy_ms, (unsigned) (box.free_internal / 1024),
+                         (unsigned) (box.lowest_internal / 1024));
+              }
+              id(diag_prev_report) = report;
+              uint32_t n = box.written < LINES ? box.written : LINES;
+              for (uint32_t i = box.written - n; i < box.written; i++) {
+                Line &l = box.lines[i % LINES];
+                l.text[WIDTH - 1] = 0;
+                char row[WIDTH + 24];
+                snprintf(row, sizeof(row), "%4u.%03u %s", (unsigned) (l.ms / 1000), (unsigned) (l.ms % 1000), l.text);
+                id(diag_prev_log).push_back(row);
+              }
+              box.boots++;
+            } else {
+              memset(&box, 0, sizeof(box));
+              box.magic = MAGIC;
+              box.boots = 1;
+              id(diag_prev_report) = "nothing kept: the first start after power was off";
+            }
+            box.written = 0;
+            box.setup_done = 0;
+            box.lowest_internal = UINT32_MAX;
+
+            // Every log line from now on, into the ring.
+            if (logger::global_logger != nullptr) {
+              logger::global_logger->add_log_callback(
+                  &box, [](void *self, uint8_t level, const char *tag, const char *message, size_t len) {
+                    Box *b = static_cast<Box *>(self);
+                    uint32_t i = __atomic_fetch_add(&b->written, 1u, __ATOMIC_RELAXED);
+                    Line &l = b->lines[i % LINES];
+                    l.ms = millis();
+                    l.level = level;
+                    size_t o = 0;
+                    for (size_t k = 0; k < len && o < WIDTH - 1; k++) {
+                      char ch = message[k];
+                      if (ch == '\033') {  // a colour code: skip to its 'm'
+                        while (k < len && message[k] != 'm')
+                          k++;
+                        continue;
+                      }
+                      l.text[o++] = (ch == '\n' || ch == '\r') ? ' ' : ch;
+                    }
+                    l.text[o] = 0;
+                  });
+            }
+
+            // Ten times a second, from the other core: what the main loop is doing and how long it has been at it.
+            xTaskCreatePinnedToCore(
+                [](void *arg) {
+                  Box *b = static_cast<Box *>(arg);
+                  for (;;) {
+                    uint32_t now = millis();
+                    b->busy_ms = now - App.get_loop_component_start_time();
+                    b->setup_done = App.is_setup_complete() ? 1 : 0;
+                    Component *c = App.get_current_component();
+                    const char *name = c != nullptr ? LOG_STR_ARG(c->get_component_log_str()) : nullptr;
+                    if (b->setup_done && name != nullptr)
+                      strncpy(b->component, name, sizeof(b->component) - 1);
+                    uint32_t free_now = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+                    b->free_internal = free_now;
+                    if (free_now < b->lowest_internal)
+                      b->lowest_internal = free_now;
+                    b->seen_ms = now;
+                    vTaskDelay(pdMS_TO_TICKS(100));
+                  }
+                },
+                "blackbox", 3072, &box, 1, nullptr, 0);
+
+api:
+  # Whenever a log viewer or Home Assistant connects: what the previous boot left, into this boot's log.
+  on_client_connected:
+    - delay: 2s
+    - button.press: diag_replay
+
+button:
+  - platform: template
+    id: diag_replay
+    name: "Diag replay previous boot"
+    icon: mdi:history
+    entity_category: diagnostic
+    on_press:
+      - lambda: |-
+          ESP_LOGW("blackbox", "Previous boot: %s", id(diag_prev_report).c_str());
+          for (auto &row : id(diag_prev_log))
+            ESP_LOGW("blackbox", "  %s", row.c_str());
+
+text_sensor:
+  - platform: template
+    name: "Diag previous boot"
+    icon: mdi:history
+    entity_category: diagnostic
+    update_interval: 60s
+    lambda: |-
+      return id(diag_prev_report).substr(0, 250);
+  - platform: template
+    name: "Diag previous boot last log line"
+    icon: mdi:text-long
+    entity_category: diagnostic
+    update_interval: 60s
+    lambda: |-
+      if (id(diag_prev_log).empty())
+        return std::string("-");
+      return id(diag_prev_log).back().substr(0, 250);
+  # The microphone and its codec: running or not, muted or not, and the ES8311's registers (0x18 on touch_bus).
+  # Its chip ID at 0xFD/0xFE reads 83 11 when the codec answers.
+  - platform: template
+    name: "Diag microphone"
+    icon: mdi:microphone-message
+    entity_category: diagnostic
+    update_interval: 30s
+    lambda: |-
+      std::string s = id(ts_microphone)->is_running() ? "running" : (id(ts_microphone)->is_stopped() ? "stopped" : "starting/stopping");
+      if (id(ts_microphone)->get_mute_state())
+        s += ", MUTED";
+      auto rd = [](uint8_t reg, int &value) {
+        uint8_t v = 0;
+        bool ok = id(touch_bus)->write_readv(0x18, &reg, 1, &v, 1) == i2c::ERROR_OK;
+        value = ok ? v : -1;
+        return ok;
+      };
+      int id_hi, id_lo;
+      rd(0xFD, id_hi);
+      rd(0xFE, id_lo);
+      char head[40];
+      snprintf(head, sizeof(head), "; ES8311 id %02X %02X; regs", id_hi & 0xFF, id_lo & 0xFF);
+      s += (id_hi < 0) ? std::string("; ES8311 does not answer") : std::string(head);
+      if (id_hi >= 0) {
+        // Reset and clocks, power, the ADC's input and gain (0x14), its volume (0x17), and the data routing (0x44).
+        static const uint8_t regs[] = {0x00, 0x01, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14,
+                                       0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x44, 0x45};
+        for (uint8_t r : regs) {
+          int v;
+          char cell[12];
+          if (rd(r, v))
+            snprintf(cell, sizeof(cell), " %02X=%02X", r, v);
+          else
+            snprintf(cell, sizeof(cell), " %02X=--", r);
+          s += cell;
+        }
+      }
+      return s.substr(0, 250);
+
+sensor:
+  # Listens beside whatever else uses the microphone (passive): it never starts or stops it.
+  - platform: sound_level
+    passive: true
+    microphone: ts_microphone
+    measurement_duration: 2s
+    peak:
+      name: "Diag microphone peak"
+      entity_category: diagnostic
+    rms:
+      name: "Diag microphone RMS"
+      entity_category: diagnostic

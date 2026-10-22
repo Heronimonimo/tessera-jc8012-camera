@@ -1,0 +1,39 @@
+# Temporary: compile the boot black box Override YAML on a JC8012P4A1 V3 with Tessera's dev, as the add-on builds it.
+name: blackbox
+on: { push: , workflow_dispatch: }
+jobs:
+  firmware:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: diag }
+      - uses: actions/checkout@v4
+        with: { repository: MaxGramser/homeassistant_espscreen, ref: dev, path: tessera }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - run: python -m pip install "esphome==2026.9.0"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/esphome
+          key: esphome-${{ runner.os }}-2026.9.0-dev
+          restore-keys: esphome-${{ runner.os }}-2026.9.0-
+      - name: Screen with the override
+        working-directory: tessera/checkout
+        run: |
+          cat > secrets.yaml <<EOS
+          wifi_ssid: "ci"
+          wifi_password: "ci-password"
+          api_encryption_key: "$(head -c 32 /dev/urandom | base64)"
+          ota_password: "ci-ota"
+          ap_password: "ci-ap-password"
+          EOS
+          cat > ci-diag.yaml <<'EOS'
+          packages:
+            screen: !include jc8012p4a1v3.yaml
+            local_overrides: !include ../../diag/diagnostics/boot-blackbox.yaml
+          EOS
+      - run: esphome config ci-diag.yaml > /dev/null
+        working-directory: tessera/checkout
+      - run: esphome compile ci-diag.yaml
+        working-directory: tessera/checkout
