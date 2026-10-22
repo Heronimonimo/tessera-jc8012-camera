@@ -193,8 +193,9 @@ text_sensor:
       s += (id_hi < 0) ? std::string("; ES8311 does not answer") : std::string(head);
       if (id_hi >= 0) {
         // Reset and clocks, power, the ADC's input and gain (0x14), its volume (0x17), and the data routing (0x44).
-        static const uint8_t regs[] = {0x00, 0x01, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14,
-                                       0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x44, 0x45};
+        // The serial ports' format and mutes (0x09 in, 0x0A out) as well.
+        static const uint8_t regs[] = {0x00, 0x01, 0x09, 0x0A, 0x0D, 0x0E, 0x0F, 0x10, 0x14,
+                                       0x15, 0x16, 0x17, 0x1B, 0x1C, 0x44, 0x45};
         for (uint8_t r : regs) {
           int v;
           char cell[12];
@@ -206,6 +207,37 @@ text_sensor:
         }
       }
       return s.substr(0, 250);
+  # The I2S lines themselves, read straight off the pins 20000 times: how often each one changed and how often it was
+  # high. The clocks (BCLK GPIO12, WS GPIO10) should change thousands of times; the microphone's data (GPIO11, the
+  # codec's ASDOUT) changes too when the codec sends sound, and stays 0 or 20000 high when nothing drives it.
+  - platform: template
+    name: "Diag I2S pins"
+    icon: mdi:sine-wave
+    entity_category: diagnostic
+    update_interval: 30s
+    lambda: |-
+      static const gpio_num_t pins[] = {GPIO_NUM_12, GPIO_NUM_10, GPIO_NUM_11};
+      static const char *names[] = {"BCLK12", "WS10", "DATA11"};
+      uint32_t changes[3] = {0, 0, 0}, highs[3] = {0, 0, 0};
+      int last[3];
+      for (int p = 0; p < 3; p++)
+        last[p] = gpio_get_level(pins[p]);
+      for (int i = 0; i < 20000; i++) {
+        for (int p = 0; p < 3; p++) {
+          int v = gpio_get_level(pins[p]);
+          highs[p] += v;
+          changes[p] += (v != last[p]);
+          last[p] = v;
+        }
+      }
+      std::string s;
+      for (int p = 0; p < 3; p++) {
+        char cell[48];
+        snprintf(cell, sizeof(cell), "%s%s: %u changes, %u high", p ? "; " : "", names[p], (unsigned) changes[p],
+                 (unsigned) highs[p]);
+        s += cell;
+      }
+      return s;
 
 sensor:
   # Listens beside whatever else uses the microphone (passive): it never starts or stops it.
